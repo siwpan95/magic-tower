@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII魔塔 - 完整版：商人系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #c0c0c0;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        h1 {
+            color: #8b0000;
+            font-size: 2.5rem;
+            text-shadow: 0 0 5px #8b0000;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #808080;
+            font-style: italic;
+        }
+        
+        .warning {
+            color: #ff6666;
+            background-color: #220000;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ff4444;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .game-section {
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .info-section {
+            flex: 2;
+            min-width: 300px;
+            background-color: #111;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+        
+        .game-container {
+            background-color: #000;
+            border: 2px solid #333;
+            padding: 10px;
+            margin-bottom: 20px;
+            overflow: auto;
+        }
+        
+        #game-screen {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            line-height: 1.2;
+            white-space: pre;
+            color: #c0c0c0;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #222;
+            color: #c0c0c0;
+            border: 1px solid #444;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #333;
+            border-color: #666;
+        }
+        
+        button:disabled {
+            background-color: #111;
+            color: #666;
+            cursor: not-allowed;
+            border-color: #333;
+        }
+        
+        .primary-btn {
+            background-color: #8b0000;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .primary-btn:hover:not(:disabled) {
+            background-color: #a00;
+        }
+        
+        .direction-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 5px;
+            max-width: 150px;
+            margin-top: 10px;
+        }
+        
+        .dir-btn {
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .up-btn { grid-column: 2; }
+        .left-btn { grid-column: 1; }
+        .right-btn { grid-column: 3; }
+        .down-btn { grid-column: 2; grid-row: 2; }
+        
+        .panel {
+            background-color: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .panel h2 {
+            color: #8b0000;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .panel h3 {
+            color: #d2691e;
+            margin: 10px 0 5px 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .status-value {
+            color: #f0f0f0;
+        }
+        
+        .highlight {
+            color: #ff9900;
+            font-weight: bold;
+        }
+        
+        .boss-indicator {
+            color: #ff0000;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .log {
+            height: 150px;
+            overflow-y: auto;
+            background-color: #0a0a0a;
+            border: 1px solid #222;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px dotted #222;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-char {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #111;
+            border: 2px solid #8b0000;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal h2 {
+            color: #ff9900;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .modal-option {
+            background-color: #222;
+            border: 1px solid #444;
+            padding: 20px;
+            width: 250px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-option:hover {
+            background-color: #333;
+            border-color: #ff9900;
+            transform: scale(1.05);
+        }
+        
+        .modal-option h3 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+        
+        .modal-option p {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .modal-option .price {
+            color: #ffcc00;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .modal-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .modal-option.disabled:hover {
+            background-color: #222;
+            border-color: #444;
+            transform: none;
+        }
+        
+        .current-skills {
+            margin-top: 15px;
+        }
+        
+        .skill-list {
+            list-style-type: none;
+        }
+        
+        .skill-list li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .skill-list li:before {
+            content: "★";
+            position: absolute;
+            left: 0;
+            color: #ff9900;
+        }
+        
+        .skill-level-indicator {
+            display: inline-block;
+            width: 100px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        .skill-level-fill {
+            height: 100%;
+            background-color: #4CAF50;
+        }
+        
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #222;
+            border: 1px solid #333;
+        }
+        
+        .shop-item-info {
+            flex: 1;
+        }
+        
+        .shop-item-name {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        .shop-item-desc {
+            color: #aaa;
+            font-size: 12px;
+        }
+        
+        .shop-item-price {
+            color: #ffcc00;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .shop-item button {
+            margin-left: 10px;
+        }
+        
+        .buff-list {
+            list-style-type: none;
+            margin-top: 10px;
+        }
+        
+        .buff-list li {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #222;
+            border-left: 3px solid #ff9900;
+        }
+        
+        .buff-duration {
+            color: #aaa;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        .gold-amount {
+            color: #ffcc00;
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+            background-color: #222;
+            border: 1px solid #444;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+        
+        .key-hint {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .player-char {
+            color: #ffdd00;
+            text-shadow: 0 0 5px #ffdd00;
+        }
+        
+        .wall-char {
+            color: #808080;
+        }
+        
+        .floor-char {
+            color: #606060;
+        }
+        
+        .monster-char {
+            color: #ff4444;
+        }
+        
+        .boss-char {
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            animation: glow 1.5s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #ff0000; }
+            to { text-shadow: 0 0 10px #ff0000, 0 0 15px #ff4400; }
+        }
+        
+        .item-char {
+            color: #44ff44;
+        }
+        
+        .merchant-char {
+            color: #ffcc00;
+            text-shadow: 0 0 5px #ffcc00;
+        }
+        
+        .door-char {
+            color: #d2691e;
+        }
+        
+        .stairs-char {
+            color: #9370db;
+        }
+        
+        .boss-floor-info {
+            color: #ff6666;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .floor-multiplier {
+            color: #ff9900;
+            font-weight: bold;
+        }
+        
+        .exp-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .exp-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .skill-points {
+            color: #ff9900;
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+            background-color: #222;
+            border: 1px solid #444;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            #game-screen {
+                font-size: 16px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .modal-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .modal-option {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ASCII 魔塔 - 商人系统</h1>
+        <p class="subtitle">经验、等级、技能与商人系统</p>
+        <div class="warning">警告：每上升1层，所有怪物属性翻倍！18倍数楼层为BOSS房间，必须击败BOSS才能继续前进！</div>
+    </header>
+    
+    <div class="container">
+        <div class="game-section">
+            <div class="controls">
+                <button id="start-btn" class="primary-btn">开始游戏</button>
+                <button id="restart-btn">重新开始游戏</button>
+                <div class="direction-buttons">
+                    <button class="dir-btn up-btn">↑</button>
+                    <button class="dir-btn left-btn">←</button>
+                    <button class="dir-btn right-btn">→</button>
+                    <button class="dir-btn down-btn">↓</button>
+                </div>
+            </div>
+            
+            <div id="boss-floor-info" class="boss-floor-info" style="display: none;"></div>
+            
+            <div class="game-container">
+                <div id="game-screen"></div>
+            </div>
+            
+            <p class="key-hint">使用方向键或WASD移动角色，也可点击上方方向按钮</p>
+        </div>
+        
+        <div class="info-section">
+            <div class="panel">
+                <h2>玩家状态</h2>
+                <div class="status-item">
+                    <span>等级:</span>
+                    <span id="level-value" class="status-value">1</span>
+                </div>
+                <div class="status-item">
+                    <span>经验值:</span>
+                    <span id="exp-value" class="status-value">0/100</span>
+                </div>
+                <div class="exp-bar">
+                    <div id="exp-fill" class="exp-fill"></div>
+                </div>
+                <div class="status-item">
+                    <span>技能点:</span>
+                    <span id="skill-points-value" class="status-value highlight">0</span>
+                </div>
+                <div class="status-item">
+                    <span>金币:</span>
+                    <span id="gold-value" class="status-value highlight">0</span>
+                </div>
+                <div class="status-item">
+                    <span>生命值:</span>
+                    <span id="hp-value" class="status-value">100/100</span>
+                </div>
+                <div class="status-item">
+                    <span>攻击力:</span>
+                    <span id="attack-value" class="status-value">10</span>
+                </div>
+                <div class="status-item">
+                    <span>防御力:</span>
+                    <span id="defense-value" class="status-value">5</span>
+                </div>
+                <div class="status-item">
+                    <span>楼层:</span>
+                    <span id="floor-value" class="status-value">1</span>
+                </div>
+                <div class="status-item">
+                    <span>钥匙:</span>
+                    <span id="keys-value" class="status-value">0</span>
+                </div>
+                <div class="status-item">
+                    <span>怪物倍数:</span>
+                    <span id="monster-multiplier" class="status-value floor-multiplier">1×</span>
+                </div>
+                <div class="status-item">
+                    <span>下次BOSS:</span>
+                    <span id="next-boss" class="status-value highlight">18层</span>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>当前被动技能</h2>
+                <div id="current-skills" class="current-skills">
+                    <ul id="skill-list" class="skill-list">
+                        <li>无</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>当前增益效果</h2>
+                <div id="buff-container">
+                    <ul id="buff-list" class="buff-list">
+                        <li>无</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>游戏日志</h2>
+                <div id="game-log" class="log"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>图例说明</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-char player-char">@</span>
+                        <span>玩家</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char wall-char">#</span>
+                        <span>墙壁</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char floor-char">.</span>
+                        <span>地板</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char monster-char">g</span>
+                        <span>地精</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char monster-char">o</span>
+                        <span>兽人</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char monster-char">D</span>
+                        <span>龙</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char boss-char">B</span>
+                        <span>BOSS</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char merchant-char">M</span>
+                        <span>商人</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char item-char">+</span>
+                        <span>治疗药水</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char door-char">≡</span>
+                        <span>门</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-char stairs-char">></span>
+                        <span>楼梯</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="skill-selection" class="modal">
+        <div class="modal-content">
+            <h2>选择被动技能</h2>
+            <p class="skill-points">你有 <span id="available-skill-points">1</span> 个技能点可用</p>
+            <div id="skill-options" class="modal-options">
+                <!-- 技能选项将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <div id="shop-modal" class="modal">
+        <div class="modal-content">
+            <h2>神秘商人</h2>
+            <p class="gold-amount">你的金币: <span id="player-gold-amount">0</span></p>
+            <div id="shop-items">
+                <!-- 商店物品将通过JavaScript动态生成 -->
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="exit-shop">离开商店</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>ASCII魔塔 - 击败怪物获得经验值和金币，升级学习技能，在商人处购买物品增强实力！</p>
+        <p>每层怪物属性翻倍，18倍数楼层为BOSS房间，必须击败BOSS才能继续前进！</p>
+    </footer>
+
+    <script>
+        // 游戏状态变量
+        let gameState = {
+            initialized: false,
+            running: false,
+            player: {
+                x: 0,
+                y: 0,
+                hp: 100,
+                maxHp: 100,
+                attack: 10,
+                defense: 5,
+                level: 1,
+                exp: 0,
+                expToNextLevel: 100,
+                gold: 0,
+                skillPoints: 0,
+                keys: 0
+            },
+            currentFloor: 1,
+            mapData: {}, // 存储所有已生成的地图数据
+            visibleArea: { x1: 0, y1: 0, x2: 0, y2: 0 },
+            viewDistance: 10, // 视野范围
+            logEntries: [],
+            bossDefeated: false, // BOSS是否被击败
+            monsterMultiplier: 1, // 怪物属性倍数
+            nextBossFloor: 18, // 下一个BOSS楼层
+            passiveSkills: [], // 已学习的被动技能
+            activeBuffs: [], // 当前生效的增益效果
+            // 被动技能配置
+            allSkills: [
+                {
+                    id: 1,
+                    name: "生命增强",
+                    description: "最大生命值增加20点",
+                    effect: (player) => { player.maxHp += 20; player.hp += 20; },
+                    level: 1,
+                    maxLevel: 5
+                },
+                {
+                    id: 2,
+                    name: "攻击强化",
+                    description: "攻击力增加5点",
+                    effect: (player) => { player.attack += 5; },
+                    level: 1,
+                    maxLevel: 5
+                },
+                {
+                    id: 3,
+                    name: "防御强化",
+                    description: "防御力增加3点",
+                    effect: (player) => { player.defense += 3; },
+                    level: 1,
+                    maxLevel: 5
+                },
+                {
+                    id: 4,
+                    name: "生命偷取",
+                    description: "每次攻击恢复造成伤害的10%生命值",
+                    effect: (player) => { player.lifeSteal = (player.lifeSteal || 0) + 0.1; },
+                    level: 1,
+                    maxLevel: 3
+                },
+                {
+                    id: 5,
+                    name: "暴击",
+                    description: "10%几率造成双倍伤害",
+                    effect: (player) => { player.criticalChance = (player.criticalChance || 0) + 0.1; },
+                    level: 1,
+                    maxLevel: 3
+                },
+                {
+                    id: 6,
+                    name: "伤害减免",
+                    description: "受到的所有伤害减少2点（最低为1）",
+                    effect: (player) => { player.damageReduction = (player.damageReduction || 0) + 2; },
+                    level: 1,
+                    maxLevel: 5
+                },
+                {
+                    id: 7,
+                    name: "经验吸收",
+                    description: "获得的经验值增加20%",
+                    effect: (player) => { player.expBonus = (player.expBonus || 0) + 0.2; },
+                    level: 1,
+                    maxLevel: 3
+                },
+                {
+                    id: 8,
+                    name: "战斗狂热",
+                    description: "生命值低于30%时，攻击力增加50%",
+                    effect: (player) => { player.berserk = true; },
+                    level: 1,
+                    maxLevel: 1
+                },
+                {
+                    id: 9,
+                    name: "坚韧",
+                    description: "每次受到攻击时，有20%几率减少50%伤害",
+                    effect: (player) => { player.toughness = 0.2; },
+                    level: 1,
+                    maxLevel: 2
+                },
+                {
+                    id: 10,
+                    name: "快速恢复",
+                    description: "每回合恢复最大生命值的2%",
+                    effect: (player) => { player.hpRegen = (player.hpRegen || 0) + 0.02; },
+                    level: 1,
+                    maxLevel: 3
+                }
+            ],
+            // 商店物品配置
+            shopItems: [
+                {
+                    id: 1,
+                    name: "治疗药水",
+                    description: "恢复50点生命值",
+                    type: "consumable",
+                    effect: (player) => { 
+                        player.hp = Math.min(player.maxHp, player.hp + 50);
+                        updateGameLog("使用治疗药水，恢复了50点生命值", "heal");
+                    },
+                    price: 30,
+                    stock: 3
+                },
+                {
+                    id: 2,
+                    name: "力量药剂",
+                    description: "永久增加5点攻击力",
+                    type: "permanent",
+                    effect: (player) => { 
+                        player.attack += 5;
+                        updateGameLog("使用力量药剂，永久增加5点攻击力", "item");
+                    },
+                    price: 100,
+                    stock: 1
+                },
+                {
+                    id: 3,
+                    name: "防御药剂",
+                    description: "永久增加3点防御力",
+                    type: "permanent",
+                    effect: (player) => { 
+                        player.defense += 3;
+                        updateGameLog("使用防御药剂，永久增加3点防御力", "item");
+                    },
+                    price: 80,
+                    stock: 1
+                },
+                {
+                    id: 4,
+                    name: "生命上限药剂",
+                    description: "永久增加20点最大生命值",
+                    type: "permanent",
+                    effect: (player) => { 
+                        player.maxHp += 20;
+                        player.hp += 20;
+                        updateGameLog("使用生命上限药剂，永久增加20点最大生命值", "item");
+                    },
+                    price: 120,
+                    stock: 1
+                },
+                {
+                    id: 5,
+                    name: "万能钥匙",
+                    description: "可以打开任何一扇门",
+                    type: "key",
+                    effect: (player) => { 
+                        player.keys += 1;
+                        updateGameLog("获得1把万能钥匙", "item");
+                    },
+                    price: 50,
+                    stock: 2
+                },
+                {
+                    id: 6,
+                    name: "狂暴药水",
+                    description: "接下来3场战斗攻击力翻倍",
+                    type: "buff",
+                    effect: (player) => { 
+                        addBuff("狂暴", 3, { attackMultiplier: 2.0 });
+                        updateGameLog("使用狂暴药水，接下来3场战斗攻击力翻倍", "buff");
+                    },
+                    price: 150,
+                    stock: 1
+                },
+                {
+                    id: 7,
+                    name: "钢铁皮肤药水",
+                    description: "接下来3场战斗防御力翻倍",
+                    type: "buff",
+                    effect: (player) => { 
+                        addBuff("钢铁皮肤", 3, { defenseMultiplier: 2.0 });
+                        updateGameLog("使用钢铁皮肤药水，接下来3场战斗防御力翻倍", "buff");
+                    },
+                    price: 120,
+                    stock: 1
+                },
+                {
+                    id: 8,
+                    name: "经验药水",
+                    description: "接下来5场战斗获得双倍经验",
+                    type: "buff",
+                    effect: (player) => { 
+                        addBuff("经验增幅", 5, { expMultiplier: 2.0 });
+                        updateGameLog("使用经验药水，接下来5场战斗获得双倍经验", "buff");
+                    },
+                    price: 100,
+                    stock: 1
+                },
+                {
+                    id: 9,
+                    name: "黄金药水",
+                    description: "接下来5场战斗获得双倍金币",
+                    type: "buff",
+                    effect: (player) => { 
+                        addBuff("黄金增幅", 5, { goldMultiplier: 2.0 });
+                        updateGameLog("使用黄金药水，接下来5场战斗获得双倍金币", "buff");
+                    },
+                    price: 100,
+                    stock: 1
+                }
+            ]
+        };
+        
+        // 游戏配置
+        const config = {
+            screenWidth: 41,  // 游戏区域宽度（奇数，使玩家在中心）
+            screenHeight: 21, // 游戏区域高度（奇数，使玩家在中心）
+            tileTypes: {
+                WALL: '#',
+                FLOOR: '.',
+                DOOR: '≡',
+                STAIRS_DOWN: '>',
+                PLAYER: '@',
+                MERCHANT: 'M'
+            },
+            monsterTypes: [
+                { char: 'g', name: '地精', hp: 20, attack: 5, defense: 2, exp: 20, gold: 10 },
+                { char: 'o', name: '兽人', hp: 40, attack: 10, defense: 5, exp: 40, gold: 20 },
+                { char: 'T', name: '巨魔', hp: 60, attack: 15, defense: 8, exp: 60, gold: 30 },
+                { char: 'D', name: '龙', hp: 100, attack: 25, defense: 15, exp: 100, gold: 50 }
+            ],
+            bossMonster: { char: 'B', name: '魔塔守护者', hp: 500, attack: 50, defense: 30, exp: 500, gold: 200 },
+            itemTypes: [
+                { char: '+', name: '治疗药水', type: 'heal', value: 20 },
+                { char: '!', name: '力量药剂', type: 'attack', value: 5 },
+                { char: '*', name: '防御药剂', type: 'defense', value: 3 },
+                { char: '$', name: '金币袋', type: 'gold', value: 25 },
+                { char: '≡', name: '钥匙', type: 'key', value: 1 }
+            ],
+            // 升级所需经验值增长公式：基础值 * (等级)^1.5
+            expBase: 100
+        };
+        
+        // DOM元素
+        const gameScreen = document.getElementById('game-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const upBtn = document.querySelector('.up-btn');
+        const downBtn = document.querySelector('.down-btn');
+        const leftBtn = document.querySelector('.left-btn');
+        const rightBtn = document.querySelector('.right-btn');
+        const levelValue = document.getElementById('level-value');
+        const expValue = document.getElementById('exp-value');
+        const expFill = document.getElementById('exp-fill');
+        const skillPointsValue = document.getElementById('skill-points-value');
+        const goldValue = document.getElementById('gold-value');
+        const hpValue = document.getElementById('hp-value');
+        const attackValue = document.getElementById('attack-value');
+        const defenseValue = document.getElementById('defense-value');
+        const floorValue = document.getElementById('floor-value');
+        const keysValue = document.getElementById('keys-value');
+        const monsterMultiplierEl = document.getElementById('monster-multiplier');
+        const nextBoss = document.getElementById('next-boss');
+        const gameLog = document.getElementById('game-log');
+        const bossFloorInfo = document.getElementById('boss-floor-info');
+        const skillList = document.getElementById('skill-list');
+        const buffList = document.getElementById('buff-list');
+        const skillSelection = document.getElementById('skill-selection');
+        const availableSkillPoints = document.getElementById('available-skill-points');
+        const skillOptions = document.getElementById('skill-options');
+        const shopModal = document.getElementById('shop-modal');
+        const playerGoldAmount = document.getElementById('player-gold-amount');
+        const shopItems = document.getElementById('shop-items');
+        const exitShopBtn = document.getElementById('exit-shop');
+        
+        // 初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            gameState = {
+                initialized: true,
+                running: true,
+                player: {
+                    x: 0,
+                    y: 0,
+                    hp: 100,
+                    maxHp: 100,
+                    attack: 10,
+                    defense: 5,
+                    level: 1,
+                    exp: 0,
+                    expToNextLevel: config.expBase,
+                    gold: 0,
+                    skillPoints: 0,
+                    keys: 0
+                },
+                currentFloor: 1,
+                mapData: {},
+                visibleArea: { x1: 0, y1: 0, x2: 0, y2: 0 },
+                viewDistance: 10,
+                logEntries: [],
+                bossDefeated: false,
+                monsterMultiplier: 1,
+                nextBossFloor: 18,
+                passiveSkills: [],
+                activeBuffs: [],
+                allSkills: [...gameState.allSkills.map(skill => ({...skill, level: 1}))],
+                shopItems: JSON.parse(JSON.stringify(gameState.shopItems)) // 深拷贝商店物品
+            };
+            
+            // 生成初始地图区域
+            generateInitialMap();
+            
+            // 更新UI
+            updateStatusDisplay();
+            updateSkillList();
+            updateBuffList();
+            updateGameLog("你进入了神秘的地牢，开始你的冒险！", "system");
+            updateGameLog("击败怪物获得经验值和金币，升级可学习技能！", "system");
+            updateGameLog("地图上有商人(M)，可以花费金币购买各种物品！", "system");
+            updateGameLog("警告：每上升一层，所有怪物属性翻倍！", "warning");
+            updateGameLog("18倍数的楼层是BOSS房间，必须击败BOSS才能继续前进！", "warning");
+            
+            // 渲染游戏画面
+            renderGame();
+        }
+        
+        // 计算怪物属性倍数
+        function calculateMonsterMultiplier(floor) {
+            // 每层怪物属性翻倍
+            return Math.pow(2, floor - 1);
+        }
+        
+        // 计算升级所需经验
+        function calculateExpToNextLevel(level) {
+            return Math.floor(config.expBase * Math.pow(level, 1.5));
+        }
+        
+        // 增加经验值
+        function addExperience(exp) {
+            // 应用经验加成（来自增益效果）
+            let expMultiplier = 1.0;
+            gameState.activeBuffs.forEach(buff => {
+                if (buff.effects.expMultiplier) {
+                    expMultiplier *= buff.effects.expMultiplier;
+                }
+            });
+            
+            // 应用被动技能加成
+            if (gameState.player.expBonus) {
+                expMultiplier *= (1 + gameState.player.expBonus);
+            }
+            
+            exp = Math.floor(exp * expMultiplier);
+            
+            gameState.player.exp += exp;
+            updateGameLog(`获得 ${exp} 点经验值`, "exp");
+            
+            // 检查是否升级
+            while (gameState.player.exp >= gameState.player.expToNextLevel) {
+                levelUp();
+            }
+            
+            updateStatusDisplay();
+        }
+        
+        // 增加金币
+        function addGold(gold) {
+            // 应用金币加成（来自增益效果）
+            let goldMultiplier = 1.0;
+            gameState.activeBuffs.forEach(buff => {
+                if (buff.effects.goldMultiplier) {
+                    goldMultiplier *= buff.effects.goldMultiplier;
+                }
+            });
+            
+            gold = Math.floor(gold * goldMultiplier);
+            
+            gameState.player.gold += gold;
+            updateGameLog(`获得 ${gold} 金币`, "gold");
+            updateStatusDisplay();
+        }
+        
+        // 升级
+        function levelUp() {
+            gameState.player.level++;
+            gameState.player.exp -= gameState.player.expToNextLevel;
+            gameState.player.expToNextLevel = calculateExpToNextLevel(gameState.player.level);
+            
+            // 升级基础属性提升
+            gameState.player.maxHp += 10;
+            gameState.player.hp = gameState.player.maxHp; // 升级时恢复全部生命
+            gameState.player.attack += 2;
+            gameState.player.defense += 1;
+            
+            // 获得技能点
+            gameState.player.skillPoints++;
+            
+            updateGameLog(`<span class="highlight">恭喜升级！当前等级：${gameState.player.level}</span>`, "level");
+            updateGameLog(`获得1个技能点，总技能点：${gameState.player.skillPoints}`, "level");
+            
+            // 如果有技能点，显示技能选择界面
+            if (gameState.player.skillPoints > 0) {
+                showSkillSelection();
+            }
+        }
+        
+        // 显示技能选择界面
+        function showSkillSelection() {
+            if (gameState.player.skillPoints <= 0) return;
+            
+            // 暂停游戏
+            gameState.running = false;
+            
+            // 更新可用技能点显示
+            availableSkillPoints.textContent = gameState.player.skillPoints;
+            
+            // 清空技能选项
+            skillOptions.innerHTML = '';
+            
+            // 获取3个随机的、未满级的技能
+            const availableSkills = gameState.allSkills.filter(skill => {
+                // 检查是否已学习此技能
+                const learnedSkill = gameState.passiveSkills.find(s => s.id === skill.id);
+                // 如果已学习但未满级，可以再次选择
+                if (learnedSkill && learnedSkill.level < skill.maxLevel) {
+                    return true;
+                }
+                // 如果未学习，可以学习
+                if (!learnedSkill) {
+                    return true;
+                }
+                return false;
+            });
+            
+            // 随机选择3个技能
+            const selectedSkills = [];
+            while (selectedSkills.length < 3 && availableSkills.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableSkills.length);
+                const skill = availableSkills[randomIndex];
+                
+                // 避免重复
+                if (!selectedSkills.some(s => s.id === skill.id)) {
+                    selectedSkills.push(skill);
+                }
+            }
+            
+            // 生成技能选项
+            selectedSkills.forEach(skill => {
+                const skillOption = document.createElement('div');
+                skillOption.className = 'modal-option';
+                skillOption.dataset.skillId = skill.id;
+                
+                // 检查是否已学习此技能
+                const learnedSkill = gameState.passiveSkills.find(s => s.id === skill.id);
+                const currentLevel = learnedSkill ? learnedSkill.level : 0;
+                
+                skillOption.innerHTML = `
+                    <h3>${skill.name}</h3>
+                    <p>${skill.description}</p>
+                    <p>当前等级: ${currentLevel}/${skill.maxLevel}</p>
+                `;
+                
+                skillOption.addEventListener('click', () => selectSkill(skill.id));
+                skillOptions.appendChild(skillOption);
+            });
+            
+            // 显示技能选择界面
+            skillSelection.style.display = 'flex';
+        }
+        
+        // 选择技能
+        function selectSkill(skillId) {
+            const skill = gameState.allSkills.find(s => s.id === skillId);
+            if (!skill) return;
+            
+            // 检查是否已学习此技能
+            let learnedSkill = gameState.passiveSkills.find(s => s.id === skillId);
+            
+            if (learnedSkill) {
+                // 升级现有技能
+                if (learnedSkill.level < skill.maxLevel) {
+                    learnedSkill.level++;
+                    // 应用技能效果
+                    skill.effect(gameState.player);
+                    updateGameLog(`<span class="highlight">${skill.name} 提升到 ${learnedSkill.level} 级！</span>`, "skill");
+                }
+            } else {
+                // 学习新技能
+                learnedSkill = { ...skill, level: 1 };
+                gameState.passiveSkills.push(learnedSkill);
+                // 应用技能效果
+                skill.effect(gameState.player);
+                updateGameLog(`<span class="highlight">学会了新技能：${skill.name}！</span>`, "skill");
+            }
+            
+            // 消耗技能点
+            gameState.player.skillPoints--;
+            
+            // 更新技能列表
+            updateSkillList();
+            
+            // 隐藏技能选择界面
+            skillSelection.style.display = 'none';
+            
+            // 恢复游戏
+            gameState.running = true;
+            
+            // 更新状态显示
+            updateStatusDisplay();
+            
+            // 如果还有技能点，继续选择
+            if (gameState.player.skillPoints > 0) {
+                setTimeout(() => showSkillSelection(), 500);
+            }
+            
+            // 重新渲染游戏
+            renderGame();
+        }
+        
+        // 更新技能列表显示
+        function updateSkillList() {
+            skillList.innerHTML = '';
+            
+            if (gameState.passiveSkills.length === 0) {
+                skillList.innerHTML = '<li>无</li>';
+                return;
+            }
+            
+            gameState.passiveSkills.forEach(skill => {
+                const li = document.createElement('li');
+                li.innerHTML = `${skill.name} <span class="highlight">Lv.${skill.level}/${skill.maxLevel}</span>`;
+                skillList.appendChild(li);
+            });
+        }
+        
+        // 添加增益效果
+        function addBuff(name, duration, effects) {
+            // 检查是否已有相同类型的增益
+            const existingBuffIndex = gameState.activeBuffs.findIndex(buff => buff.name === name);
+            
+            if (existingBuffIndex >= 0) {
+                // 延长持续时间
+                gameState.activeBuffs[existingBuffIndex].duration += duration;
+            } else {
+                // 添加新增益
+                gameState.activeBuffs.push({
+                    name,
+                    duration,
+                    effects
+                });
+            }
+            
+            updateBuffList();
+        }
+        
+        // 消耗增益效果（每次战斗后调用）
+        function consumeBuff() {
+            for (let i = gameState.activeBuffs.length - 1; i >= 0; i--) {
+                gameState.activeBuffs[i].duration--;
+                
+                if (gameState.activeBuffs[i].duration <= 0) {
+                    updateGameLog(`增益效果 "${gameState.activeBuffs[i].name}" 已消失`, "buff");
+                    gameState.activeBuffs.splice(i, 1);
+                }
+            }
+            
+            updateBuffList();
+        }
+        
+        // 更新增益效果列表显示
+        function updateBuffList() {
+            buffList.innerHTML = '';
+            
+            if (gameState.activeBuffs.length === 0) {
+                buffList.innerHTML = '<li>无</li>';
+                return;
+            }
+            
+            gameState.activeBuffs.forEach(buff => {
+                const li = document.createElement('li');
+                
+                // 根据增益类型显示不同描述
+                let effectDesc = '';
+                if (buff.effects.attackMultiplier) {
+                    effectDesc = `攻击力x${buff.effects.attackMultiplier}`;
+                } else if (buff.effects.defenseMultiplier) {
+                    effectDesc = `防御力x${buff.effects.defenseMultiplier}`;
+                } else if (buff.effects.expMultiplier) {
+                    effectDesc = `经验值x${buff.effects.expMultiplier}`;
+                } else if (buff.effects.goldMultiplier) {
+                    effectDesc = `金币x${buff.effects.goldMultiplier}`;
+                }
+                
+                li.innerHTML = `
+                    <strong>${buff.name}</strong>: ${effectDesc}
+                    <span class="buff-duration">剩余${buff.duration}场战斗</span>
+                `;
+                buffList.appendChild(li);
+            });
+        }
+        
+        // 显示商店界面
+        function showShop() {
+            // 暂停游戏
+            gameState.running = false;
+            
+            // 更新玩家金币显示
+            playerGoldAmount.textContent = gameState.player.gold;
+            
+            // 清空商店物品显示
+            shopItems.innerHTML = '';
+            
+            // 生成商店物品列表
+            gameState.shopItems.forEach(item => {
+                if (item.stock <= 0) return; // 售罄的物品不显示
+                
+                const shopItem = document.createElement('div');
+                shopItem.className = 'shop-item';
+                
+                const canAfford = gameState.player.gold >= item.price;
+                
+                shopItem.innerHTML = `
+                    <div class="shop-item-info">
+                        <div class="shop-item-name">${item.name}</div>
+                        <div class="shop-item-desc">${item.description}</div>
+                        <div class="shop-item-price">价格: ${item.price} 金币</div>
+                        <div class="shop-item-stock">剩余: ${item.stock} 个</div>
+                    </div>
+                    <button ${canAfford ? '' : 'disabled'}>购买</button>
+                `;
+                
+                // 添加购买事件
+                const buyButton = shopItem.querySelector('button');
+                buyButton.addEventListener('click', () => buyItem(item.id));
+                
+                shopItems.appendChild(shopItem);
+            });
+            
+            // 显示商店界面
+            shopModal.style.display = 'flex';
+        }
+        
+        // 购买物品
+        function buyItem(itemId) {
+            const item = gameState.shopItems.find(item => item.id === itemId);
+            if (!item || item.stock <= 0) return;
+            
+            // 检查金币是否足够
+            if (gameState.player.gold < item.price) {
+                updateGameLog("金币不足，无法购买！", "warning");
+                return;
+            }
+            
+            // 扣除金币
+            gameState.player.gold -= item.price;
+            
+            // 减少库存
+            item.stock--;
+            
+            // 应用物品效果
+            item.effect(gameState.player);
+            
+            updateGameLog(`购买了 ${item.name}，花费 ${item.price} 金币`, "shop");
+            
+            // 更新UI
+            updateStatusDisplay();
+            playerGoldAmount.textContent = gameState.player.gold;
+            
+            // 重新生成商店界面
+            showShop();
+        }
+        
+        // 生成初始地图
+        function generateInitialMap() {
+            // 计算玩家初始位置
+            const centerX = Math.floor(config.screenWidth / 2);
+            const centerY = Math.floor(config.screenHeight / 2);
+            
+            // 玩家初始位置设为(0,0)坐标
+            gameState.player.x = 0;
+            gameState.player.y = 0;
+            
+            // 更新怪物倍数
+            gameState.monsterMultiplier = calculateMonsterMultiplier(gameState.currentFloor);
+            
+            // 生成玩家周围区域
+            generateAreaAround(0, 0);
+            
+            // 确保玩家起始位置是地板
+            const playerKey = `${gameState.player.x},${gameState.player.y}`;
+            if (!gameState.mapData[playerKey]) {
+                gameState.mapData[playerKey] = { type: 'floor', char: config.tileTypes.FLOOR };
+            } else if (gameState.mapData[playerKey].type === 'wall') {
+                gameState.mapData[playerKey] = { type: 'floor', char: config.tileTypes.FLOOR };
+            }
+            
+            // 设置视野范围
+            updateVisibleArea();
+            
+            // 更新BOSS楼层显示
+            updateBossFloorDisplay();
+        }
+        
+        // 生成指定坐标周围的区域
+        function generateAreaAround(centerX, centerY) {
+            const isBossFloor = gameState.currentFloor % 18 === 0;
+            
+            if (isBossFloor) {
+                // BOSS楼层：生成一个BOSS房间
+                generateBossRoom(centerX, centerY);
+            } else {
+                // 普通楼层：随机生成地形
+                const radius = 5; // 生成半径
+                
+                for (let dx = -radius; dx <= radius; dx++) {
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        const x = centerX + dx;
+                        const y = centerY + dy;
+                        const key = `${x},${y}`;
+                        
+                        // 如果这个位置还没有生成，则生成
+                        if (!gameState.mapData[key]) {
+                            generateTile(x, y, false);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 生成BOSS房间
+        function generateBossRoom(centerX, centerY) {
+            const roomSize = 7; // BOSS房间大小
+            
+            // 生成一个方形的BOSS房间
+            for (let dx = -roomSize; dx <= roomSize; dx++) {
+                for (let dy = -roomSize; dy <= roomSize; dy++) {
+                    const x = centerX + dx;
+                    const y = centerY + dy;
+                    const key = `${x},${y}`;
+                    
+                    // 房间边界是墙壁
+                    if (Math.abs(dx) === roomSize || Math.abs(dy) === roomSize) {
+                        gameState.mapData[key] = { 
+                            type: 'wall', 
+                            char: config.tileTypes.WALL,
+                            x: x,
+                            y: y
+                        };
+                    } 
+                    // 房间内部是地板
+                    else {
+                        gameState.mapData[key] = { 
+                            type: 'floor', 
+                            char: config.tileTypes.FLOOR,
+                            x: x,
+                            y: y
+                        };
+                        
+                        // 房间中心放置BOSS
+                        if (dx === 0 && dy === 0) {
+                            const boss = {...config.bossMonster};
+                            // BOSS属性也受楼层倍数影响
+                            boss.hp *= gameState.monsterMultiplier;
+                            boss.attack *= gameState.monsterMultiplier;
+                            boss.defense *= gameState.monsterMultiplier;
+                            boss.exp *= gameState.monsterMultiplier;
+                            boss.gold *= gameState.monsterMultiplier;
+                            boss.currentHp = boss.hp;
+                            boss.isBoss = true;
+                            
+                            gameState.mapData[key].monster = boss;
+                            gameState.bossDefeated = false;
+                        }
+                        
+                        // 入口位置（底部中间）
+                        if (dx === 0 && dy === roomSize - 1) {
+                            gameState.player.x = x;
+                            gameState.player.y = y;
+                        }
+                        
+                        // 出口位置（顶部中间，但开始时是墙，击败BOSS后变成楼梯）
+                        if (dx === 0 && dy === -roomSize + 1) {
+                            if (gameState.bossDefeated) {
+                                gameState.mapData[key].stairs = true;
+                                gameState.mapData[key].char = config.tileTypes.STAIRS_DOWN;
+                            } else {
+                                gameState.mapData[key].type = 'wall';
+                                gameState.mapData[key].char = config.tileTypes.WALL;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 显示BOSS楼层信息
+            bossFloorInfo.textContent = `第${gameState.currentFloor}层 - BOSS房间！击败BOSS才能继续前进！`;
+            bossFloorInfo.style.display = "block";
+        }
+        
+        // 生成单个图块
+        function generateTile(x, y, isBossFloor) {
+            const key = `${x},${y}`;
+            
+            // 使用简单的噪声算法决定地形类型
+            const noise = (Math.sin(x * 0.5) * Math.cos(y * 0.5) + 1) / 2; // 0到1之间的值
+            
+            if (noise < 0.3) {
+                // 30%概率是墙壁
+                gameState.mapData[key] = { 
+                    type: 'wall', 
+                    char: config.tileTypes.WALL,
+                    x: x,
+                    y: y
+                };
+            } else {
+                // 70%概率是地板
+                gameState.mapData[key] = { 
+                    type: 'floor', 
+                    char: config.tileTypes.FLOOR,
+                    x: x,
+                    y: y
+                };
+                
+                // 地板上可能有物品、怪物或商人
+                if (Math.random() < 0.1) { // 10%概率生成物品
+                    const item = getRandomItem();
+                    gameState.mapData[key].item = item;
+                } else if (Math.random() < 0.15) { // 15%概率生成怪物
+                    const monster = getRandomMonster();
+                    gameState.mapData[key].monster = monster;
+                } else if (Math.random() < 0.02) { // 2%概率生成门
+                    gameState.mapData[key].door = true;
+                    gameState.mapData[key].char = config.tileTypes.DOOR;
+                } else if (Math.random() < 0.01) { // 1%概率生成楼梯
+                    gameState.mapData[key].stairs = true;
+                    gameState.mapData[key].char = config.tileTypes.STAIRS_DOWN;
+                } else if (Math.random() < 0.03) { // 3%概率生成商人
+                    gameState.mapData[key].merchant = true;
+                    gameState.mapData[key].char = config.tileTypes.MERCHANT;
+                }
+            }
+        }
+        
+        // 获取随机怪物
+        function getRandomMonster() {
+            // 根据楼层决定怪物强度
+            let monsterPool = config.monsterTypes;
+            if (gameState.currentFloor === 1) {
+                monsterPool = config.monsterTypes.slice(0, 2); // 第一层只有弱怪物
+            } else if (gameState.currentFloor <= 5) {
+                monsterPool = config.monsterTypes.slice(0, 3); // 前5层有中等怪物
+            }
+            // 更深楼层有所有类型怪物
+            
+            const monster = {...monsterPool[Math.floor(Math.random() * monsterPool.length)]};
+            
+            // 应用楼层倍数
+            const multiplier = gameState.monsterMultiplier;
+            monster.hp *= multiplier;
+            monster.attack *= multiplier;
+            monster.defense *= multiplier;
+            monster.exp = Math.floor(monster.exp * multiplier);
+            monster.gold = Math.floor(monster.gold * multiplier);
+            
+            monster.currentHp = monster.hp;
+            return monster;
+        }
+        
+        // 获取随机物品
+        function getRandomItem() {
+            return {...config.itemTypes[Math.floor(Math.random() * config.itemTypes.length)]};
+        }
+        
+        // 更新视野范围
+        function updateVisibleArea() {
+            const halfWidth = Math.floor(config.screenWidth / 2);
+            const halfHeight = Math.floor(config.screenHeight / 2);
+            
+            gameState.visibleArea.x1 = gameState.player.x - halfWidth;
+            gameState.visibleArea.y1 = gameState.player.y - halfHeight;
+            gameState.visibleArea.x2 = gameState.player.x + halfWidth;
+            gameState.visibleArea.y2 = gameState.player.y + halfHeight;
+        }
+        
+        // 渲染游戏画面
+        function renderGame() {
+            if (!gameState.initialized || !gameState.running) return;
+            
+            let screen = '';
+            
+            // 更新视野范围
+            updateVisibleArea();
+            
+            // 生成玩家视野内的新区域
+            for (let y = gameState.visibleArea.y1; y <= gameState.visibleArea.y2; y++) {
+                for (let x = gameState.visibleArea.x1; x <= gameState.visibleArea.x2; x++) {
+                    const key = `${x},${y}`;
+                    
+                    // 如果这个位置在视野内但还未生成，则生成
+                    if (!gameState.mapData[key]) {
+                        const isBossFloor = gameState.currentFloor % 18 === 0;
+                        generateTile(x, y, isBossFloor);
+                    }
+                }
+            }
+            
+            // 清理视野外的区域（优化性能）
+            cleanupOutsideVisibleArea();
+            
+            // 绘制游戏画面
+            for (let y = gameState.visibleArea.y1; y <= gameState.visibleArea.y2; y++) {
+                for (let x = gameState.visibleArea.x1; x <= gameState.visibleArea.x2; x++) {
+                    const key = `${x},${y}`;
+                    const tile = gameState.mapData[key];
+                    
+                    // 检查是否是玩家位置
+                    if (x === gameState.player.x && y === gameState.player.y) {
+                        screen += `<span class="player-char">${config.tileTypes.PLAYER}</span>`;
+                    } 
+                    // 检查是否有商人
+                    else if (tile && tile.merchant) {
+                        screen += `<span class="merchant-char">${tile.char}</span>`;
+                    }
+                    // 检查是否有BOSS
+                    else if (tile && tile.monster && tile.monster.isBoss) {
+                        screen += `<span class="boss-char">${tile.monster.char}</span>`;
+                    }
+                    // 检查是否有怪物
+                    else if (tile && tile.monster) {
+                        screen += `<span class="monster-char">${tile.monster.char}</span>`;
+                    }
+                    // 检查是否有物品
+                    else if (tile && tile.item) {
+                        screen += `<span class="item-char">${tile.item.char}</span>`;
+                    }
+                    // 检查是否有门
+                    else if (tile && tile.door) {
+                        screen += `<span class="door-char">${tile.char}</span>`;
+                    }
+                    // 检查是否有楼梯
+                    else if (tile && tile.stairs) {
+                        screen += `<span class="stairs-char">${tile.char}</span>`;
+                    }
+                    // 普通地形
+                    else if (tile) {
+                        if (tile.type === 'wall') {
+                            screen += `<span class="wall-char">${tile.char}</span>`;
+                        } else {
+                            screen += `<span class="floor-char">${tile.char}</span>`;
+                        }
+                    } else {
+                        // 未知区域（实际上不会发生，因为我们已经生成了所有视野内区域）
+                        screen += ' ';
+                    }
+                }
+                screen += '\n';
+            }
+            
+            gameScreen.innerHTML = screen;
+        }
+        
+        // 清理视野外的区域以优化性能
+        function cleanupOutsideVisibleArea() {
+            const cleanupRadius = 15; // 清理视野外多少格
+            const keys = Object.keys(gameState.mapData);
+            
+            for (const key of keys) {
+                const [x, y] = key.split(',').map(Number);
+                
+                // 如果图块离玩家太远，则删除
+                if (Math.abs(x - gameState.player.x) > cleanupRadius || 
+                    Math.abs(y - gameState.player.y) > cleanupRadius) {
+                    delete gameState.mapData[key];
+                }
+            }
+        }
+        
+        // 移动玩家
+        function movePlayer(dx, dy) {
+            if (!gameState.running) return;
+            
+            const newX = gameState.player.x + dx;
+            const newY = gameState.player.y + dy;
+            const targetKey = `${newX},${newY}`;
+            const targetTile = gameState.mapData[targetKey];
+            
+            // 检查目标位置是否可移动
+            if (!targetTile || targetTile.type === 'wall') {
+                updateGameLog("前方是墙壁，无法通过。", "action");
+                return;
+            }
+            
+            // 检查是否有商人
+            if (targetTile.merchant) {
+                interactWithMerchant(targetTile, newX, newY);
+                return;
+            }
+            
+            // 检查是否有门
+            if (targetTile.door) {
+                if (gameState.player.keys > 0) {
+                    gameState.player.keys--;
+                    targetTile.door = false;
+                    targetTile.char = config.tileTypes.FLOOR;
+                    updateGameLog(`你用钥匙打开了一扇门。剩余钥匙: ${gameState.player.keys}`, "action");
+                } else {
+                    updateGameLog("这扇门是锁着的，你需要一把钥匙。", "action");
+                    return;
+                }
+            }
+            
+            // 检查是否有怪物
+            if (targetTile.monster) {
+                fightMonster(targetTile, newX, newY);
+                return;
+            }
+            
+            // 检查是否有物品
+            if (targetTile.item) {
+                pickUpItem(targetTile, newX, newY);
+            }
+            
+            // 检查是否有楼梯
+            if (targetTile.stairs) {
+                goDownStairs();
+                return;
+            }
+            
+            // 应用生命恢复技能
+            if (gameState.player.hpRegen) {
+                const healAmount = Math.floor(gameState.player.maxHp * gameState.player.hpRegen);
+                if (healAmount > 0) {
+                    gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + healAmount);
+                    updateGameLog(`快速恢复生效，恢复 ${healAmount} 点生命值`, "heal");
+                }
+            }
+            
+            // 移动玩家
+            gameState.player.x = newX;
+            gameState.player.y = newY;
+            
+            // 渲染新画面
+            renderGame();
+        }
+        
+        // 与商人交互
+        function interactWithMerchant(tile, merchantX, merchantY) {
+            updateGameLog("你遇到了神秘商人！", "shop");
+            showShop();
+        }
+        
+        // 与怪物战斗
+        function fightMonster(tile, monsterX, monsterY) {
+            const monster = tile.monster;
+            const key = `${monsterX},${monsterY}`;
+            
+            const isBoss = monster.isBoss || false;
+            
+            updateGameLog(`你遭遇了${isBoss ? "强大的" : ""}${monster.name}！`, "combat");
+            
+            if (isBoss) {
+                updateGameLog(`这是第${gameState.currentFloor}层的BOSS，必须击败它才能继续前进！`, "combat");
+            }
+            
+            // 计算玩家伤害
+            let playerDamage = Math.max(1, gameState.player.attack - monster.defense);
+            
+            // 应用增益效果
+            gameState.activeBuffs.forEach(buff => {
+                if (buff.effects.attackMultiplier) {
+                    playerDamage = Math.floor(playerDamage * buff.effects.attackMultiplier);
+                }
+            });
+            
+            // 应用暴击技能
+            if (gameState.player.criticalChance && Math.random() < gameState.player.criticalChance) {
+                playerDamage *= 2;
+                updateGameLog("<span class='highlight'>暴击！</span>", "combat");
+            }
+            
+            // 应用战斗狂热技能（生命值低于30%时攻击力增加）
+            if (gameState.player.berserk && gameState.player.hp / gameState.player.maxHp < 0.3) {
+                playerDamage = Math.floor(playerDamage * 1.5);
+                updateGameLog("<span class='highlight'>战斗狂热激活！</span>", "combat");
+            }
+            
+            // 计算怪物伤害
+            let monsterDamage = Math.max(1, monster.attack - gameState.player.defense);
+            
+            // 应用增益效果
+            gameState.activeBuffs.forEach(buff => {
+                if (buff.effects.defenseMultiplier) {
+                    monsterDamage = Math.max(1, Math.floor(monsterDamage / buff.effects.defenseMultiplier));
+                }
+            });
+            
+            // 应用伤害减免技能
+            if (gameState.player.damageReduction) {
+                monsterDamage = Math.max(1, monsterDamage - gameState.player.damageReduction);
+            }
+            
+            // 应用坚韧技能（减少伤害几率）
+            if (gameState.player.toughness && Math.random() < gameState.player.toughness) {
+                monsterDamage = Math.max(1, Math.floor(monsterDamage * 0.5));
+                updateGameLog("<span class='highlight'>坚韧生效，减少伤害！</span>", "combat");
+            }
+            
+            // 玩家攻击怪物
+            monster.currentHp -= playerDamage;
+            updateGameLog(`你对${monster.name}造成了<span class="highlight">${playerDamage}</span>点伤害。`, "combat");
+            
+            // 应用生命偷取技能
+            if (gameState.player.lifeSteal) {
+                const healAmount = Math.floor(playerDamage * gameState.player.lifeSteal);
+                if (healAmount > 0) {
+                    gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + healAmount);
+                    updateGameLog(`生命偷取生效，恢复 ${healAmount} 点生命值`, "heal");
+                }
+            }
+            
+            // 检查怪物是否死亡
+            if (monster.currentHp <= 0) {
+                // 怪物死亡
+                addExperience(monster.exp);
+                addGold(monster.gold);
+                
+                if (isBoss) {
+                    updateGameLog(`<span class="boss-indicator">你击败了BOSS ${monster.name}！</span>`, "combat");
+                    updateGameLog(`<span class="boss-indicator">通往下一层的楼梯出现了！</span>`, "system");
+                    
+                    // 标记BOSS被击败
+                    gameState.bossDefeated = true;
+                    
+                    // 在BOSS房间生成楼梯
+                    const isBossFloor = gameState.currentFloor % 18 === 0;
+                    if (isBossFloor) {
+                        // 找到BOSS房间的出口位置（顶部中间）
+                        for (let dx = -6; dx <= 6; dx++) {
+                            for (let dy = -6; dy <= 6; dy++) {
+                                const x = monsterX + dx;
+                                const y = monsterY + dy;
+                                const tileKey = `${x},${y}`;
+                                const tile = gameState.mapData[tileKey];
+                                
+                                // 顶部中间位置
+                                if (dx === 0 && dy === -6 && tile) {
+                                    tile.stairs = true;
+                                    tile.type = 'floor';
+                                    tile.char = config.tileTypes.STAIRS_DOWN;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    updateGameLog(`你击败了${monster.name}！`, "combat");
+                }
+                
+                // 消耗增益效果
+                consumeBuff();
+                
+                // 移除怪物
+                delete gameState.mapData[key].monster;
+                
+                // 玩家移动到怪物位置
+                gameState.player.x = monsterX;
+                gameState.player.y = monsterY;
+            } else {
+                // 怪物反击
+                gameState.player.hp -= monsterDamage;
+                updateGameLog(`${monster.name}对你造成了<span class="highlight">${monsterDamage}</span>点伤害。`, "combat");
+                
+                // 检查玩家是否死亡
+                if (gameState.player.hp <= 0) {
+                    gameState.player.hp = 0;
+                    updateGameLog("<span class='boss-indicator'>你被击败了！游戏结束。</span>", "combat");
+                    gameState.running = false;
+                    startBtn.disabled = false;
+                    startBtn.textContent = "重新开始";
+                }
+            }
+            
+            // 更新UI
+            updateStatusDisplay();
+            renderGame();
+        }
+        
+        // 拾取物品
+        function pickUpItem(tile, itemX, itemY) {
+            const item = tile.item;
+            const key = `${itemX},${itemY}`;
+            
+            updateGameLog(`你发现了${item.name}！`, "item");
+            
+            // 应用物品效果
+            switch (item.type) {
+                case 'heal':
+                    gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + item.value);
+                    updateGameLog(`你恢复了${item.value}点生命值。`, "item");
+                    break;
+                case 'attack':
+                    gameState.player.attack += item.value;
+                    updateGameLog(`你的攻击力提升了${item.value}点。`, "item");
+                    break;
+                case 'defense':
+                    gameState.player.defense += item.value;
+                    updateGameLog(`你的防御力提升了${item.value}点。`, "item");
+                    break;
+                case 'gold':
+                    addGold(item.value);
+                    break;
+                case 'key':
+                    gameState.player.keys += item.value;
+                    updateGameLog(`你获得了${item.value}把钥匙。`, "item");
+                    break;
+            }
+            
+            // 移除物品
+            delete gameState.mapData[key].item;
+            
+            // 更新UI
+            updateStatusDisplay();
+        }
+        
+        // 下楼梯
+        function goDownStairs() {
+            const isBossFloor = gameState.currentFloor % 18 === 0;
+            
+            // 如果是BOSS楼层且BOSS未被击败，不能下楼
+            if (isBossFloor && !gameState.bossDefeated) {
+                updateGameLog("你必须击败本层的BOSS才能继续前进！", "warning");
+                return;
+            }
+            
+            gameState.currentFloor++;
+            updateGameLog(`你进入了第${gameState.currentFloor}层。`, "system");
+            
+            // 隐藏BOSS楼层提示
+            bossFloorInfo.style.display = "none";
+            
+            // 更新怪物倍数
+            gameState.monsterMultiplier = calculateMonsterMultiplier(gameState.currentFloor);
+            updateGameLog(`警告：本层怪物属性变为<span class="highlight">${gameState.monsterMultiplier}倍</span>！`, "warning");
+            
+            // 清空当前地图（新楼层会重新生成）
+            gameState.mapData = {};
+            
+            // 重置BOSS击败状态
+            gameState.bossDefeated = false;
+            
+            // 重置商店库存（每层刷新）
+            gameState.shopItems = JSON.parse(JSON.stringify(gameState.shopItems.map(item => ({
+                ...item,
+                stock: item.type === 'permanent' ? 1 : item.stock // 永久物品每层只刷新1个
+            }))));
+            
+            // 将玩家位置重置为(0,0)
+            gameState.player.x = 0;
+            gameState.player.y = 0;
+            
+            // 生成新楼层
+            generateAreaAround(0, 0);
+            
+            // 确保玩家起始位置是地板
+            const playerKey = `${gameState.player.x},${gameState.player.y}`;
+            if (!gameState.mapData[playerKey]) {
+                gameState.mapData[playerKey] = { type: 'floor', char: config.tileTypes.FLOOR };
+            }
+            
+            // 更新UI
+            updateStatusDisplay();
+            renderGame();
+        }
+        
+        // 更新状态显示
+        function updateStatusDisplay() {
+            levelValue.textContent = gameState.player.level;
+            expValue.textContent = `${gameState.player.exp}/${gameState.player.expToNextLevel}`;
+            skillPointsValue.textContent = gameState.player.skillPoints;
+            goldValue.textContent = gameState.player.gold;
+            hpValue.textContent = `${gameState.player.hp}/${gameState.player.maxHp}`;
+            attackValue.textContent = gameState.player.attack;
+            defenseValue.textContent = gameState.player.defense;
+            floorValue.textContent = gameState.currentFloor;
+            keysValue.textContent = gameState.player.keys;
+            monsterMultiplierEl.textContent = `${gameState.monsterMultiplier}×`;
+// 更新经验条
+            const expPercentage = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
+            expFill.style.width = `${expPercentage}%`;
+            
+            // 计算下一个BOSS楼层
+            const nextBossFloor = Math.ceil(gameState.currentFloor / 18) * 18;
+            nextBoss.textContent = `${nextBossFloor}层`;
+            
+            // 高亮显示当前是BOSS楼层
+            if (gameState.currentFloor % 18 === 0) {
+                nextBoss.className = "status-value boss-indicator";
+            } else {
+                nextBoss.className = "status-value highlight";
+            }
+        }
+        
+        // 更新BOSS楼层显示
+        function updateBossFloorDisplay() {
+            if (gameState.currentFloor % 18 === 0) {
+                bossFloorInfo.textContent = `第${gameState.currentFloor}层 - BOSS房间！击败BOSS才能继续前进！`;
+                bossFloorInfo.style.display = "block";
+            } else {
+                bossFloorInfo.style.display = "none";
+            }
+        }
+        
+        // 更新游戏日志
+        function updateGameLog(message, type = "system") {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = message; // 使用innerHTML以支持span标签
+            
+            // 根据类型设置颜色
+            switch(type) {
+                case 'combat':
+                    entry.style.color = '#ff6666';
+                    break;
+                case 'item':
+                    entry.style.color = '#66ff66';
+                    break;
+                case 'action':
+                    entry.style.color = '#6666ff';
+                    break;
+                case 'warning':
+                    entry.style.color = '#ff9900';
+                    entry.style.fontWeight = 'bold';
+                    break;
+                case 'exp':
+                    entry.style.color = '#ffcc00';
+                    break;
+                case 'level':
+                    entry.style.color = '#00ccff';
+                    entry.style.fontWeight = 'bold';
+                    break;
+                case 'skill':
+                    entry.style.color = '#cc66ff';
+                    break;
+                case 'heal':
+                    entry.style.color = '#00ff99';
+                    break;
+                case 'gold':
+                    entry.style.color = '#ffcc00';
+                    break;
+                case 'shop':
+                    entry.style.color = '#ff9900';
+                    break;
+                case 'buff':
+                    entry.style.color = '#9370db';
+                    break;
+                default:
+                    entry.style.color = '#cccccc';
+            }
+            
+            gameLog.appendChild(entry);
+            
+            // 限制日志条目数量
+            while (gameLog.children.length > 20) {
+                gameLog.removeChild(gameLog.firstChild);
+            }
+            
+            // 滚动到底部
+            gameLog.scrollTop = gameLog.scrollHeight;
+        }
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.running) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    movePlayer(0, -1);
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    movePlayer(0, 1);
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer(-1, 0);
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer(1, 0);
+                    e.preventDefault();
+                    break;
+                case 'Escape':
+                    // 如果技能选择界面打开，按ESC关闭
+                    if (skillSelection.style.display === 'flex') {
+                        skillSelection.style.display = 'none';
+                        gameState.running = true;
+                    }
+                    // 如果商店界面打开，按ESC关闭
+                    if (shopModal.style.display === 'flex') {
+                        shopModal.style.display = 'none';
+                        gameState.running = true;
+                    }
+                    break;
+            }
+        });
+        
+        // 按钮事件监听
+        startBtn.addEventListener('click', () => {
+            if (!gameState.initialized || !gameState.running) {
+                initGame();
+                startBtn.textContent = "游戏进行中";
+                startBtn.disabled = true;
+            }
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            if (confirm("确定要重新开始游戏吗？当前进度将丢失。")) {
+                initGame();
+                startBtn.textContent = "游戏进行中";
+                startBtn.disabled = true;
+            }
+        });
+        
+        // 方向按钮事件监听
+        upBtn.addEventListener('click', () => movePlayer(0, -1));
+        downBtn.addEventListener('click', () => movePlayer(0, 1));
+        leftBtn.addEventListener('click', () => movePlayer(-1, 0));
+        rightBtn.addEventListener('click', () => movePlayer(1, 0));
+        
+        // 商店退出按钮
+        exitShopBtn.addEventListener('click', () => {
+            shopModal.style.display = 'none';
+            gameState.running = true;
+        });
+        
+        // 初始化游戏界面
+        function initUI() {
+            // 显示初始提示
+            gameScreen.textContent = "点击\"开始游戏\"按钮开始冒险！\n\n使用方向键或WASD移动。\n\n击败怪物获得经验值和金币，升级可学习技能！\n\n地图上的商人(M)可以购买各种物品！";
+            
+            // 初始日志
+            updateGameLog("欢迎来到ASCII魔塔 - 完整版！", "system");
+            updateGameLog("击败怪物获得经验值和金币，升级可学习技能！", "system");
+            updateGameLog("地图上的商人(M)可以购买各种物品增强实力！", "system");
+            updateGameLog("每层怪物属性翻倍，18倍数楼层为BOSS房间！", "warning");
+            updateGameLog("点击\"开始游戏\"按钮开始你的冒险。", "system");
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initUI);
+    </script>
+</body>
+</html>

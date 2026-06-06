@@ -1,0 +1,330 @@
+"""Integration test: verify Excel data loading + world init after refactor."""
+from __future__ import annotations
+import os
+import sys
+
+# Ensure project root is on path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, PROJECT_ROOT)
+
+PASS = 0
+FAIL = 0
+
+def check(name: str, condition: bool, detail: str = ""):
+    global PASS, FAIL
+    if condition:
+        PASS += 1
+        print(f"  [PASS] {name}")
+    else:
+        FAIL += 1
+        print(f"  [FAIL] {name} -- {detail}")
+
+
+def test_01_import_config():
+    """config.py should still be importable with engine constants."""
+    import game.config as cfg
+    check("config.SCREEN_WIDTH", cfg.SCREEN_WIDTH == 41)
+    check("config.TILES['WALL']", cfg.TILES["WALL"] == "#")
+    check("config.EXP_BASE", cfg.EXP_BASE == 100)
+    # Content data should NOT be in config anymore
+    has_monsters = hasattr(cfg, "MONSTER_TYPES")
+    check("config no MONSTER_TYPES", not has_monsters,
+          f"MONSTER_TYPES still present: {getattr(cfg, 'MONSTER_TYPES', None)}")
+
+
+def test_02_import_data_loader():
+    """data_loader module should import cleanly."""
+    from game.data_loader import GameDataLoader, _build_effect, _set
+    check("GameDataLoader import", True)
+    check("_build_effect callable", callable(_build_effect))
+    check("_set callable", callable(_set))
+
+
+def test_03_load_excel():
+    """GameDataLoader.load_all() returns complete dict."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+
+    required_keys = [
+        "SCREEN_WIDTH", "SCREEN_HEIGHT", "TILES",
+        "MONSTER_TYPES", "BOSS_TEMPLATE", "ITEM_TYPES",
+        "PLAYER_BASE", "SHOP_ITEMS", "ALL_SKILLS",
+    ]
+    for k in required_keys:
+        check(f"data contains {k}", k in data, f"missing key: {k}")
+
+
+def test_04_constants_values():
+    """Engine constants loaded from Excel match expected values."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+
+    check("SCREEN_WIDTH=41", data.get("SCREEN_WIDTH") == 41)
+    check("SCREEN_HEIGHT=21", data.get("SCREEN_HEIGHT") == 21)
+    check("VIEW_RADIUS=10", data.get("VIEW_RADIUS") == 10)
+    check("GEN_CHANCE_ITEM~0.10", abs(data.get("GEN_CHANCE_ITEM", 0) - 0.10) < 0.001)
+    check("BOSS_FLOOR_INTERVAL=18", data.get("BOSS_FLOOR_INTERVAL") == 18)
+
+
+def test_05_tiles():
+    """Tiles dict loaded correctly."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    tiles = data.get("TILES", {})
+    check("tiles WALL=#", tiles.get("WALL") == "#")
+    check("tiles FLOOR=.", tiles.get("FLOOR") == ".")
+    check("tiles PLAYER=@", tiles.get("PLAYER") == "@")
+    check("tiles MERCHANT=M", tiles.get("MERCHANT") == "M")
+    check("tiles count=6", len(tiles) == 6)
+
+
+def test_06_monsters():
+    """Monster templates: 4 monsters with correct base stats."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    monsters = data.get("MONSTER_TYPES", [])
+
+    check("monster count=4", len(monsters) == 4, f"got {len(monsters)}")
+
+    # Find each monster by char
+    by_char = {m["char"]: m for m in monsters}
+
+    g = by_char.get("g", {})
+    check("Goblin hp=60", g.get("hp") == 60, f"got {g.get('hp')}")
+    check("Goblin attack=14", g.get("attack") == 14, f"got {g.get('attack')}")
+
+    o = by_char.get("o", {})
+    check("Orc hp=180", o.get("hp") == 180, f"got {o.get('hp')}")
+    check("Orc gold=45", o.get("gold") == 45, f"got {o.get('gold')}")
+
+
+def test_07_items():
+    """Item templates: 5 items with correct types."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    items = data.get("ITEM_TYPES", [])
+    check("item count=5", len(items) == 5, f"got {len(items)}")
+
+    by_char = {i["char"]: i for i in items}
+    hp_item = by_char.get("!", {})
+    check("Health Potion type=heal", hp_item.get("type") == "heal", f"got {hp_item.get('type')}")
+    check("Health Potion value=30", hp_item.get("value") == 30, f"got {hp_item.get('value')}")
+
+    key_item = by_char.get("+", {})
+    check("Key type=key", key_item.get("type") == "key", f"got {key_item.get('type')}")
+
+
+def test_08_boss():
+    """Boss template loaded correctly."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    boss = data.get("BOSS_TEMPLATE", {})
+
+    check("boss char=B", boss.get("char") == "B")
+    check("boss name=Demon Lord", boss.get("name") == "Demon Lord", f"got {boss.get('name')}")
+    check("boss hp=2000", boss.get("hp") == 2000, f"got {boss.get('hp')}")
+    check("boss attack=120", boss.get("attack") == 120, f"got {boss.get('attack')}")
+
+
+def test_09_player_base():
+    """Player base stats from Excel."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    pb = data.get("PLAYER_BASE", {})
+    check("player hp=100", pb.get("hp") == 100)
+    check("player attack=10", pb.get("attack") == 10)
+    check("player defense=5", pb.get("defense") == 5)
+
+
+def test_10_shop_items():
+    """Shop items: 9 items with correct structure."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    shop = data.get("SHOP_ITEMS", [])
+    check("shop count=9", len(shop) == 9, f"got {len(shop)}")
+
+    # Verify first and last items
+    item1 = shop[0]
+    check("item1 id=1", item1.get("id") == 1)
+    check("item1 name=Small HP Potion", item1.get("name") == "Small HP Potion", f"got {item1.get('name')}")
+    check("item1 price=30", item1.get("price") == 30)
+
+    item9 = shop[-1]
+    check("item9 id=9", item9.get("id") == 9)
+    check("item9 type=key", item9.get("type") == "key", f"got {item9.get('type')}")
+
+
+def test_11_skills_count_and_structure():
+    """Skills: 10 skills loaded with compiled effect callables."""
+    from game.data_loader import GameDataLoader
+    loader = GameDataLoader()
+    data = loader.load_all()
+    skills = data.get("ALL_SKILLS", [])
+    check("skills count=10", len(skills) == 10, f"got {len(skills)}")
+
+    for s in skills:
+        check(f"skill[{s['id']}] has effect callable",
+              callable(s.get("effect")),
+              f"skill {s.get('name')}: effect not callable: {type(s.get('effect'))}")
+
+    # Check specific skill fields
+    by_id = {s["id"]: s for s in skills}
+    v = by_id.get(1, {})
+    check("Vitality Boost name=Vitality Boost", v.get("name") == "Vitality Boost", f"got {v.get('name')}")
+    check("Vitality max_level=5", v.get("max_level") == 5)
+
+    b = by_id.get(8, {})
+    check("Berserker name=Berserker", b.get("name") == "Berserker", f"got {b.get('name')}")
+    check("Berserker effect_type=set_flag", b.get("effect_type") == "set_flag")
+
+
+def test_12_skill_effect_compilation():
+    """Verify compiled skill effects produce correct results."""
+    from game.data_loader import GameDataLoader, _build_effect
+
+    # Test add_attr (Attack Boost)
+    row_add = {"effect_type": "add_attr", "target_attr": "attack", "value": 5}
+    fn_add = _build_effect(row_add)
+    class FakePlayer:
+        attack = 10
+    p = FakePlayer()
+    fn_add(p)
+    check("add_attr: attack 10->15", p.attack == 15, f"got {p.attack}")
+
+    # Test set_flag (Berserker)
+    row_flag = {"effect_type": "set_flag", "flag_name": "berserk"}
+    fn_flag = _build_effect(row_flag)
+    p2 = FakePlayer()
+    fn_flag(p2)
+    check("set_flag: berserk=True", getattr(p2, "berserk", False) == True)
+
+    # Test add_attr_pair (Vitality Boost)
+    row_pair = {"effect_type": "add_attr_pair",
+                "attr1": "max_hp", "value1": 20,
+                "attr2": "hp", "value2": 20}
+    fn_pair = _build_effect(row_pair)
+    class P3:
+        max_hp = 100
+        hp = 80
+    p3 = P3()
+    fn_pair(p3)
+    check("add_attr_pair: max_hp 100->120", p3.max_hp == 120)
+    check("add_attr_pair: hp 80->100", p3.hp == 100)
+
+    # Test stacked_mult (Toughness)
+    row_stack = {"effect_type": "stacked_mult",
+                 "target_attr": "toughness", "base": 0.2,
+                 "stack_attr": "_toughness_stack"}
+    fn_stack = _build_effect(row_stack)
+    class P4:
+        _toughness_stack = 0
+    p4 = P4()
+    fn_stack(p4)
+    check("stacked_mult stack=0 -> 0.2", abs(p4.toughness - 0.2) < 0.001,
+          f"got {p4.toughness}")
+    p4._toughness_stack = 1
+    fn_stack(p4)
+    check("stacked_mult stack=1 -> 0.4", abs(p4.toughness - 0.4) < 0.001,
+          f"got {p4.toughness}")
+
+    # ---- Test ALL effect types on plain dicts (player_data is a dict) ----
+    # add_attr
+    pdict = {"attack": 10}
+    _build_effect({"effect_type": "add_attr", "target_attr": "attack", "value": 5})(pdict)
+    check("dict add_attr: attack 10->15", pdict["attack"] == 15)
+
+    # add_attr_pair
+    pdict2 = {"max_hp": 100, "hp": 80}
+    _build_effect({"effect_type": "add_attr_pair",
+                   "attr1": "max_hp", "value1": 20,
+                   "attr2": "hp", "value2": 20})(pdict2)
+    check("dict add_attr_pair: max_hp=120, hp=100",
+          pdict2["max_hp"] == 120 and pdict2["hp"] == 100)
+
+    # set_flag
+    pdict3 = {}
+    _build_effect({"effect_type": "set_flag", "flag_name": "berserk"})(pdict3)
+    check("dict set_flag: berserk=True", pdict3["berserk"] == True)
+
+    # stacked_mult
+    pdict4 = {"_toughness_stack": 1}
+    _build_effect({"effect_type": "stacked_mult",
+                   "target_attr": "toughness", "base": 0.2,
+                   "stack_attr": "_toughness_stack"})(pdict4)
+    check("dict stacked_mult: toughness=0.4", abs(pdict4["toughness"] - 0.4) < 0.001)
+
+
+def test_13_world_init():
+    """GameWorld initializes correctly with Excel data."""
+    from game.world import GameWorld
+
+    w = GameWorld()
+    check("world created", w is not None)
+    check("world config has MONSTER_TYPES", "MONSTER_TYPES" in w.config)
+    check("world config has SHOP_ITEMS", "SHOP_ITEMS" in w.config)
+    check("world config has ALL_SKILLS", "ALL_SKILLS" in w.config)
+    check("world player hp=100", w.player_data["hp"] == 100)
+    check("world player attack=10", w.player_data["attack"] == 10)
+    check("world shop_items count=9", len(w.shop_items) == 9)
+    check("world _game_data populated", len(w._game_data) > 0)
+
+
+def test_14_skills_from_world():
+    """get_available_skills returns skills from Excel data."""
+    from game.world import GameWorld
+    random.seed(42)  # deterministic for test
+    w = GameWorld()
+    skills = w.get_available_skills(3)
+    check("get_available_skills returns 3", len(skills) == 3, f"got {len(skills)}")
+    if skills:
+        check("skill has effect callable", callable(skills[0].get("effect")))
+
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Excel Data Loader Integration Tests")
+    print("=" * 60)
+
+    import random
+    random.seed(42)
+
+    tests = [
+        test_01_import_config,
+        test_02_import_data_loader,
+        test_03_load_excel,
+        test_04_constants_values,
+        test_05_tiles,
+        test_06_monsters,
+        test_07_items,
+        test_08_boss,
+        test_09_player_base,
+        test_10_shop_items,
+        test_11_skills_count_and_structure,
+        test_12_skill_effect_compilation,
+        test_13_world_init,
+        test_14_skills_from_world,
+    ]
+
+    for t in tests:
+        print(f"\n--- {t.__doc__} ---")
+        try:
+            t()
+        except Exception as e:
+            FAIL += 1
+            print(f"  [ERROR] {t.__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+
+    print(f"\n{'=' * 60}")
+    print(f"Results: {PASS} passed, {FAIL} failed, total {PASS + FAIL}")
+    print("=" * 60)
+
+    sys.exit(0 if FAIL == 0 else 1)

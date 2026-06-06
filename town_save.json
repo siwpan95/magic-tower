@@ -1,0 +1,5232 @@
+{
+  "player_data": {
+    "x": 0,
+    "y": 0,
+    "hp": 100,
+    "max_hp": 100,
+    "attack": 10,
+    "defense": 5,
+    "level": 1,
+    "exp": 0,
+    "exp_to_next": 100,
+    "gold": 0,
+    "skill_points": 0,
+    "keys": 0,
+    "inventory": []
+  },
+  "current_floor": 1,
+  "map_data": {
+    "-5,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -5
+    },
+    "-5,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -4
+    },
+    "-5,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -3
+    },
+    "-5,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -2
+    },
+    "-5,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -5,
+      "y": -1
+    },
+    "-5,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -5,
+      "y": 0
+    },
+    "-5,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -5,
+      "y": 1
+    },
+    "-5,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 2
+    },
+    "-5,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 3,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "-5,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 4
+    },
+    "-5,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 5
+    },
+    "-4,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -5
+    },
+    "-4,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -4,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-4,-3": {
+      "type": "floor",
+      "char": "M",
+      "x": -4,
+      "y": -3,
+      "merchant": true
+    },
+    "-4,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": -4,
+      "y": -2
+    },
+    "-4,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -4,
+      "y": -1
+    },
+    "-4,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -4,
+      "y": 0
+    },
+    "-4,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -4,
+      "y": 1
+    },
+    "-4,2": {
+      "type": "wall",
+      "char": "#",
+      "x": -4,
+      "y": 2
+    },
+    "-4,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 3
+    },
+    "-4,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 4,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-4,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 5
+    },
+    "-3,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -5
+    },
+    "-3,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -4
+    },
+    "-3,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -3
+    },
+    "-3,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": -3,
+      "y": -2
+    },
+    "-3,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -3,
+      "y": -1
+    },
+    "-3,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -3,
+      "y": 0
+    },
+    "-3,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -3,
+      "y": 1
+    },
+    "-3,2": {
+      "type": "wall",
+      "char": "#",
+      "x": -3,
+      "y": 2
+    },
+    "-3,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-3,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 4,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "-3,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 5
+    },
+    "-2,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -5
+    },
+    "-2,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -4,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-2,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-2,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": -2,
+      "y": -2
+    },
+    "-2,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -2,
+      "y": -1
+    },
+    "-2,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -2,
+      "y": 0
+    },
+    "-2,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -2,
+      "y": 1
+    },
+    "-2,2": {
+      "type": "wall",
+      "char": "#",
+      "x": -2,
+      "y": 2
+    },
+    "-2,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 3
+    },
+    "-2,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 4
+    },
+    "-2,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 5,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-1,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -5,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-1,-4": {
+      "type": "floor",
+      "char": "M",
+      "x": -1,
+      "y": -4,
+      "merchant": true
+    },
+    "-1,-3": {
+      "type": "floor",
+      "char": "=",
+      "x": -1,
+      "y": -3,
+      "door": true
+    },
+    "-1,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -2
+    },
+    "-1,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -1,
+      "y": -1
+    },
+    "-1,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -1,
+      "y": 0
+    },
+    "-1,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -1,
+      "y": 1
+    },
+    "-1,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 2
+    },
+    "-1,3": {
+      "type": "floor",
+      "char": "M",
+      "x": -1,
+      "y": 3,
+      "merchant": true
+    },
+    "-1,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 4,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-1,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 5
+    },
+    "0,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -5
+    },
+    "0,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -4
+    },
+    "0,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -3
+    },
+    "0,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -2
+    },
+    "0,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -1
+    },
+    "0,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 0,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "0,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 1
+    },
+    "0,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 2
+    },
+    "0,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 3
+    },
+    "0,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 4,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "0,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 5
+    },
+    "1,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -5
+    },
+    "1,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -4
+    },
+    "1,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "1,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -2,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "1,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -1
+    },
+    "1,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 0
+    },
+    "1,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 1
+    },
+    "1,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 2
+    },
+    "1,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 3
+    },
+    "1,4": {
+      "type": "floor",
+      "char": "=",
+      "x": 1,
+      "y": 4,
+      "door": true
+    },
+    "1,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 5,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "2,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": -5
+    },
+    "2,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": -4
+    },
+    "2,-3": {
+      "type": "floor",
+      "char": "M",
+      "x": 2,
+      "y": -3,
+      "merchant": true
+    },
+    "2,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": -2
+    },
+    "2,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": -1
+    },
+    "2,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 0
+    },
+    "2,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 1
+    },
+    "2,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 2
+    },
+    "2,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 3
+    },
+    "2,4": {
+      "type": "floor",
+      "char": "=",
+      "x": 2,
+      "y": 4,
+      "door": true
+    },
+    "2,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": 5
+    },
+    "3,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": -5
+    },
+    "3,-4": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": -4
+    },
+    "3,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": -3
+    },
+    "3,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": -2
+    },
+    "3,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": -1
+    },
+    "3,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 0
+    },
+    "3,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 1
+    },
+    "3,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 2,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "3,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 3
+    },
+    "3,4": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": 4
+    },
+    "3,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": 5
+    },
+    "4,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": -5
+    },
+    "4,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -4
+    },
+    "4,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -3
+    },
+    "4,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -2
+    },
+    "4,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -1,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "4,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 0
+    },
+    "4,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "4,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 2
+    },
+    "4,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 3
+    },
+    "4,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 4,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "4,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": 5
+    },
+    "5,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": -5
+    },
+    "5,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -4
+    },
+    "5,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "5,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -2
+    },
+    "5,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -1
+    },
+    "5,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 0
+    },
+    "5,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 1,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "5,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 2
+    },
+    "5,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "5,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 4
+    },
+    "5,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": 5
+    },
+    "-15,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -10
+    },
+    "-14,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -10,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-13,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -10
+    },
+    "-12,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -10
+    },
+    "-11,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -10
+    },
+    "-10,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -10
+    },
+    "-9,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": -10,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "-8,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": -10
+    },
+    "-7,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -10
+    },
+    "-6,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -10,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-5,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -10
+    },
+    "-4,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -10
+    },
+    "-3,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -10
+    },
+    "-2,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -10
+    },
+    "-1,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -10,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "0,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -10
+    },
+    "1,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -10
+    },
+    "2,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": -10
+    },
+    "3,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": -10
+    },
+    "4,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -10
+    },
+    "5,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -10
+    },
+    "6,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -10,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "7,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -10
+    },
+    "8,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -10
+    },
+    "9,-10": {
+      "type": "floor",
+      "char": "M",
+      "x": 9,
+      "y": -10,
+      "merchant": true
+    },
+    "10,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -10
+    },
+    "11,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -10,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "12,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -10
+    },
+    "13,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -10
+    },
+    "14,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -10,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "15,-10": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -10
+    },
+    "-15,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -9
+    },
+    "-14,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -9
+    },
+    "-13,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -9
+    },
+    "-12,-9": {
+      "type": "floor",
+      "char": "=",
+      "x": -12,
+      "y": -9,
+      "door": true
+    },
+    "-11,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -9
+    },
+    "-10,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -9
+    },
+    "-9,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": -9
+    },
+    "-8,-9": {
+      "type": "floor",
+      "char": "=",
+      "x": -8,
+      "y": -9,
+      "door": true
+    },
+    "-7,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -9
+    },
+    "-6,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -9
+    },
+    "-5,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -9
+    },
+    "-4,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -9,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "-3,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -9
+    },
+    "-2,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-1,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -9
+    },
+    "0,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -9
+    },
+    "1,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -9
+    },
+    "2,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": -9
+    },
+    "3,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": -9
+    },
+    "4,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": -9,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "5,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -9
+    },
+    "6,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -9
+    },
+    "7,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -9
+    },
+    "8,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -9
+    },
+    "9,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "10,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "11,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -9
+    },
+    "12,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "13,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -9
+    },
+    "14,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -9,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "15,-9": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -9
+    },
+    "-15,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -8
+    },
+    "-14,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -8
+    },
+    "-13,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -8
+    },
+    "-12,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -8
+    },
+    "-11,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": -8
+    },
+    "-10,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": -8
+    },
+    "-9,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": -8
+    },
+    "-8,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": -8
+    },
+    "-7,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -8
+    },
+    "-6,-8": {
+      "type": "floor",
+      "char": ">",
+      "x": -6,
+      "y": -8,
+      "stairs": true
+    },
+    "-5,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -8,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-4,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -8
+    },
+    "-3,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-2,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -8
+    },
+    "-1,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -8
+    },
+    "0,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -8
+    },
+    "1,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": -8
+    },
+    "2,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": -8
+    },
+    "3,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": -8
+    },
+    "4,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": -8
+    },
+    "5,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": -8,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "6,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -8
+    },
+    "7,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -8
+    },
+    "8,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -8
+    },
+    "9,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -8
+    },
+    "10,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -8
+    },
+    "11,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -8,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "12,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "13,-8": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -8
+    },
+    "14,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": -8
+    },
+    "15,-8": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": -8
+    },
+    "-15,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -7,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-14,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -7
+    },
+    "-13,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -7,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-12,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -7
+    },
+    "-11,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": -7
+    },
+    "-10,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": -7
+    },
+    "-9,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": -7
+    },
+    "-8,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": -7
+    },
+    "-7,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -7,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-6,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -7
+    },
+    "-5,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -7
+    },
+    "-4,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -7,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-3,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -7
+    },
+    "-2,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -7
+    },
+    "-1,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -7
+    },
+    "0,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -7
+    },
+    "1,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 1,
+      "y": -7
+    },
+    "2,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": -7
+    },
+    "3,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": -7
+    },
+    "4,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": -7
+    },
+    "5,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": -7
+    },
+    "6,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -7
+    },
+    "7,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -7,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "8,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -7,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "9,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -7
+    },
+    "10,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -7
+    },
+    "11,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -7,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "12,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -7
+    },
+    "13,-7": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -7
+    },
+    "14,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": -7
+    },
+    "15,-7": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": -7
+    },
+    "-15,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -6,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-14,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -6
+    },
+    "-13,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -6
+    },
+    "-12,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -6
+    },
+    "-11,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": -6
+    },
+    "-10,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": -6
+    },
+    "-9,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": -6
+    },
+    "-8,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": -6
+    },
+    "-7,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -6
+    },
+    "-6,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -6
+    },
+    "-5,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": -6,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-4,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": -6
+    },
+    "-3,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": -6,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-2,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": -6
+    },
+    "-1,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": -6
+    },
+    "0,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": -6
+    },
+    "1,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 1,
+      "y": -6
+    },
+    "2,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": -6
+    },
+    "3,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": -6
+    },
+    "4,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": -6
+    },
+    "5,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": -6
+    },
+    "6,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -6
+    },
+    "7,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -6
+    },
+    "8,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -6,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "9,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -6
+    },
+    "10,-6": {
+      "type": "floor",
+      "char": "M",
+      "x": 10,
+      "y": -6,
+      "merchant": true
+    },
+    "11,-6": {
+      "type": "floor",
+      "char": "M",
+      "x": 11,
+      "y": -6,
+      "merchant": true
+    },
+    "12,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -6
+    },
+    "13,-6": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -6
+    },
+    "14,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": -6
+    },
+    "15,-6": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": -6
+    },
+    "-15,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -5
+    },
+    "-14,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -5
+    },
+    "-13,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -5
+    },
+    "-12,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -5
+    },
+    "-11,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": -5
+    },
+    "-10,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": -5
+    },
+    "-9,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": -5
+    },
+    "-8,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": -5
+    },
+    "-7,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -5
+    },
+    "-6,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -5,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "6,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -5
+    },
+    "7,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -5
+    },
+    "8,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -5
+    },
+    "9,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -5
+    },
+    "10,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -5
+    },
+    "11,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -5
+    },
+    "12,-5": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -5
+    },
+    "13,-5": {
+      "type": "floor",
+      "char": "M",
+      "x": 13,
+      "y": -5,
+      "merchant": true
+    },
+    "14,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": -5
+    },
+    "15,-5": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": -5
+    },
+    "-15,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -4
+    },
+    "-14,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -4,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-13,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -4
+    },
+    "-12,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -4
+    },
+    "-11,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -4
+    },
+    "-10,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -4,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "-9,-4": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": -4
+    },
+    "-8,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": -4
+    },
+    "-7,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -4
+    },
+    "-6,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -4,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "6,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -4
+    },
+    "7,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -4
+    },
+    "8,-4": {
+      "type": "floor",
+      "char": "=",
+      "x": 8,
+      "y": -4,
+      "door": true
+    },
+    "9,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -4
+    },
+    "10,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -4,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "11,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -4
+    },
+    "12,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -4
+    },
+    "13,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -4
+    },
+    "14,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -4
+    },
+    "15,-4": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -4
+    },
+    "-15,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": -3
+    },
+    "-14,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -3
+    },
+    "-13,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -3
+    },
+    "-12,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -3
+    },
+    "-11,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -3
+    },
+    "-10,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -3
+    },
+    "-9,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": -3
+    },
+    "-8,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": -3
+    },
+    "-7,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -3
+    },
+    "-6,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -3
+    },
+    "6,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -3
+    },
+    "7,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -3,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "8,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": -3,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "9,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": -3
+    },
+    "10,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": -3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "11,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -3
+    },
+    "12,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -3
+    },
+    "13,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -3
+    },
+    "14,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -3
+    },
+    "15,-3": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -3
+    },
+    "-15,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": -15,
+      "y": -2
+    },
+    "-14,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": -2,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "-13,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -2
+    },
+    "-12,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -2,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "-11,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -2
+    },
+    "-10,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -2
+    },
+    "-9,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": -2
+    },
+    "-8,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": -2
+    },
+    "-7,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -2
+    },
+    "-6,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -2
+    },
+    "6,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -2
+    },
+    "7,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -2,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "8,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": 8,
+      "y": -2
+    },
+    "9,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": 9,
+      "y": -2
+    },
+    "10,-2": {
+      "type": "wall",
+      "char": "#",
+      "x": 10,
+      "y": -2
+    },
+    "11,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": -2
+    },
+    "12,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -2
+    },
+    "13,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -2
+    },
+    "14,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -2
+    },
+    "15,-2": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -2
+    },
+    "-15,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -15,
+      "y": -1
+    },
+    "-14,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": -14,
+      "y": -1
+    },
+    "-13,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": -1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-12,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": -1
+    },
+    "-11,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": -1
+    },
+    "-10,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": -1
+    },
+    "-9,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": -1,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-8,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": -1
+    },
+    "-7,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": -1
+    },
+    "-6,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": -1
+    },
+    "6,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": -1,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "7,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": -1
+    },
+    "8,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": 8,
+      "y": -1
+    },
+    "9,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": 9,
+      "y": -1
+    },
+    "10,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": 10,
+      "y": -1
+    },
+    "11,-1": {
+      "type": "wall",
+      "char": "#",
+      "x": 11,
+      "y": -1
+    },
+    "12,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": -1,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "13,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": -1
+    },
+    "14,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": -1
+    },
+    "15,-1": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": -1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-15,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -15,
+      "y": 0
+    },
+    "-14,0": {
+      "type": "wall",
+      "char": "#",
+      "x": -14,
+      "y": 0
+    },
+    "-13,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 0
+    },
+    "-12,0": {
+      "type": "floor",
+      "char": "=",
+      "x": -12,
+      "y": 0,
+      "door": true
+    },
+    "-11,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": 0
+    },
+    "-10,0": {
+      "type": "floor",
+      "char": "=",
+      "x": -10,
+      "y": 0,
+      "door": true
+    },
+    "-9,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 0,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-8,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 0
+    },
+    "-7,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 0
+    },
+    "-6,0": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 0
+    },
+    "6,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 0
+    },
+    "7,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 0,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "8,0": {
+      "type": "wall",
+      "char": "#",
+      "x": 8,
+      "y": 0
+    },
+    "9,0": {
+      "type": "wall",
+      "char": "#",
+      "x": 9,
+      "y": 0
+    },
+    "10,0": {
+      "type": "wall",
+      "char": "#",
+      "x": 10,
+      "y": 0
+    },
+    "11,0": {
+      "type": "wall",
+      "char": "#",
+      "x": 11,
+      "y": 0
+    },
+    "12,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 0,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "13,0": {
+      "type": "floor",
+      "char": "=",
+      "x": 13,
+      "y": 0,
+      "door": true
+    },
+    "14,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 0
+    },
+    "15,0": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 0
+    },
+    "-15,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -15,
+      "y": 1
+    },
+    "-14,1": {
+      "type": "wall",
+      "char": "#",
+      "x": -14,
+      "y": 1
+    },
+    "-13,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 1,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "-12,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-11,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": 1
+    },
+    "-10,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-9,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 1
+    },
+    "-8,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 1
+    },
+    "-7,1": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 1
+    },
+    "-6,1": {
+      "type": "floor",
+      "char": "=",
+      "x": -6,
+      "y": 1,
+      "door": true
+    },
+    "6,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 1
+    },
+    "7,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 1,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "8,1": {
+      "type": "wall",
+      "char": "#",
+      "x": 8,
+      "y": 1
+    },
+    "9,1": {
+      "type": "wall",
+      "char": "#",
+      "x": 9,
+      "y": 1
+    },
+    "10,1": {
+      "type": "wall",
+      "char": "#",
+      "x": 10,
+      "y": 1
+    },
+    "11,1": {
+      "type": "wall",
+      "char": "#",
+      "x": 11,
+      "y": 1
+    },
+    "12,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 1
+    },
+    "13,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 1
+    },
+    "14,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 1,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "15,1": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 1
+    },
+    "-15,2": {
+      "type": "wall",
+      "char": "#",
+      "x": -15,
+      "y": 2
+    },
+    "-14,2": {
+      "type": "floor",
+      "char": ">",
+      "x": -14,
+      "y": 2,
+      "stairs": true
+    },
+    "-13,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 2
+    },
+    "-12,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 2
+    },
+    "-11,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": 2
+    },
+    "-10,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 2
+    },
+    "-9,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 2
+    },
+    "-8,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 2
+    },
+    "-7,2": {
+      "type": "floor",
+      "char": "M",
+      "x": -7,
+      "y": 2,
+      "merchant": true
+    },
+    "-6,2": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 2
+    },
+    "6,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 2,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "7,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 2
+    },
+    "8,2": {
+      "type": "wall",
+      "char": "#",
+      "x": 8,
+      "y": 2
+    },
+    "9,2": {
+      "type": "wall",
+      "char": "#",
+      "x": 9,
+      "y": 2
+    },
+    "10,2": {
+      "type": "wall",
+      "char": "#",
+      "x": 10,
+      "y": 2
+    },
+    "11,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 2,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "12,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 2
+    },
+    "13,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 2,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "14,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 2,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "15,2": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 2
+    },
+    "-15,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 3
+    },
+    "-14,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-13,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 3
+    },
+    "-12,3": {
+      "type": "floor",
+      "char": "M",
+      "x": -12,
+      "y": 3,
+      "merchant": true
+    },
+    "-11,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": 3,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-10,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 3,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-9,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 3
+    },
+    "-8,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 3,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "-7,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 3
+    },
+    "-6,3": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 3
+    },
+    "6,3": {
+      "type": "floor",
+      "char": "=",
+      "x": 6,
+      "y": 3,
+      "door": true
+    },
+    "7,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 3
+    },
+    "8,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 3,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "9,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 3
+    },
+    "10,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 3
+    },
+    "11,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 3
+    },
+    "12,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 3
+    },
+    "13,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 3
+    },
+    "14,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 3,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "15,3": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 3
+    },
+    "-15,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 4
+    },
+    "-14,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 4,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "-13,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 4
+    },
+    "-12,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 4
+    },
+    "-11,4": {
+      "type": "floor",
+      "char": "=",
+      "x": -11,
+      "y": 4,
+      "door": true
+    },
+    "-10,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 4
+    },
+    "-9,4": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": 4
+    },
+    "-8,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 4,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-7,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 4
+    },
+    "-6,4": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 4,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "6,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 4
+    },
+    "7,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 4
+    },
+    "8,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 4
+    },
+    "9,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 4
+    },
+    "10,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 4,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "11,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 4
+    },
+    "12,4": {
+      "type": "floor",
+      "char": "M",
+      "x": 12,
+      "y": 4,
+      "merchant": true
+    },
+    "13,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 4
+    },
+    "14,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 4
+    },
+    "15,4": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 4
+    },
+    "-15,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 5,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "-14,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 5
+    },
+    "-13,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 5
+    },
+    "-12,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 5
+    },
+    "-11,5": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": 5
+    },
+    "-10,5": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": 5
+    },
+    "-9,5": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": 5
+    },
+    "-8,5": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": 5
+    },
+    "-7,5": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 5
+    },
+    "-6,5": {
+      "type": "floor",
+      "char": ">",
+      "x": -6,
+      "y": 5,
+      "stairs": true
+    },
+    "6,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 5
+    },
+    "7,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 5
+    },
+    "8,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 5
+    },
+    "9,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 5
+    },
+    "10,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 5,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "11,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 5
+    },
+    "12,5": {
+      "type": "floor",
+      "char": ">",
+      "x": 12,
+      "y": 5,
+      "stairs": true
+    },
+    "13,5": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 5
+    },
+    "14,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": 5
+    },
+    "15,5": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": 5
+    },
+    "-15,6": {
+      "type": "floor",
+      "char": "M",
+      "x": -15,
+      "y": 6,
+      "merchant": true
+    },
+    "-14,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 6
+    },
+    "-13,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 6
+    },
+    "-12,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 6
+    },
+    "-11,6": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": 6
+    },
+    "-10,6": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": 6
+    },
+    "-9,6": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": 6
+    },
+    "-8,6": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": 6
+    },
+    "-7,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 6
+    },
+    "-6,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 6
+    },
+    "-5,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 6
+    },
+    "-4,6": {
+      "type": "floor",
+      "char": "M",
+      "x": -4,
+      "y": 6,
+      "merchant": true
+    },
+    "-3,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 6
+    },
+    "-2,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 6
+    },
+    "-1,6": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 6,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "0,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 6,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "1,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 1,
+      "y": 6
+    },
+    "2,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": 6
+    },
+    "3,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": 6
+    },
+    "4,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": 6
+    },
+    "5,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": 6
+    },
+    "6,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 6,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "7,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 6
+    },
+    "8,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 6
+    },
+    "9,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 6,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "10,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 6,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "11,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 6
+    },
+    "12,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 6
+    },
+    "13,6": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 6,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "14,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": 6
+    },
+    "15,6": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": 6
+    },
+    "-15,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 7
+    },
+    "-14,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 7
+    },
+    "-13,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 7
+    },
+    "-12,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 7
+    },
+    "-11,7": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": 7
+    },
+    "-10,7": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": 7
+    },
+    "-9,7": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": 7
+    },
+    "-8,7": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": 7
+    },
+    "-7,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 7
+    },
+    "-6,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 7
+    },
+    "-5,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 7
+    },
+    "-4,7": {
+      "type": "floor",
+      "char": "=",
+      "x": -4,
+      "y": 7,
+      "door": true
+    },
+    "-3,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 7
+    },
+    "-2,7": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 7
+    },
+    "-1,7": {
+      "type": "floor",
+      "char": "M",
+      "x": -1,
+      "y": 7,
+      "merchant": true
+    },
+    "0,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 7
+    },
+    "1,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 1,
+      "y": 7
+    },
+    "2,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": 7
+    },
+    "3,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": 7
+    },
+    "4,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": 7
+    },
+    "5,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 5,
+      "y": 7
+    },
+    "6,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 7
+    },
+    "7,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 7
+    },
+    "8,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 7,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "9,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 7,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "10,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 7
+    },
+    "11,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 7
+    },
+    "12,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 7
+    },
+    "13,7": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 7,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "14,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": 7
+    },
+    "15,7": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": 7
+    },
+    "-15,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 8
+    },
+    "-14,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-13,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 8
+    },
+    "-12,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 8,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "-11,8": {
+      "type": "wall",
+      "char": "#",
+      "x": -11,
+      "y": 8
+    },
+    "-10,8": {
+      "type": "wall",
+      "char": "#",
+      "x": -10,
+      "y": 8
+    },
+    "-9,8": {
+      "type": "wall",
+      "char": "#",
+      "x": -9,
+      "y": 8
+    },
+    "-8,8": {
+      "type": "wall",
+      "char": "#",
+      "x": -8,
+      "y": 8
+    },
+    "-7,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 8,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-6,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 8
+    },
+    "-5,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-4,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 8
+    },
+    "-3,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 8
+    },
+    "-2,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 8
+    },
+    "-1,8": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 8
+    },
+    "0,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 8,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "1,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 8
+    },
+    "2,8": {
+      "type": "wall",
+      "char": "#",
+      "x": 2,
+      "y": 8
+    },
+    "3,8": {
+      "type": "wall",
+      "char": "#",
+      "x": 3,
+      "y": 8
+    },
+    "4,8": {
+      "type": "wall",
+      "char": "#",
+      "x": 4,
+      "y": 8
+    },
+    "5,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "6,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 8,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "7,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 8,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "8,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 8
+    },
+    "9,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 8
+    },
+    "10,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 8
+    },
+    "11,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 8
+    },
+    "12,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 8
+    },
+    "13,8": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 8
+    },
+    "14,8": {
+      "type": "wall",
+      "char": "#",
+      "x": 14,
+      "y": 8
+    },
+    "15,8": {
+      "type": "wall",
+      "char": "#",
+      "x": 15,
+      "y": 8
+    },
+    "-15,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-14,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 9
+    },
+    "-13,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 9,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-12,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 9
+    },
+    "-11,9": {
+      "type": "floor",
+      "char": ">",
+      "x": -11,
+      "y": 9,
+      "stairs": true
+    },
+    "-10,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 9
+    },
+    "-9,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 9
+    },
+    "-8,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 9,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "-7,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 9
+    },
+    "-6,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 9
+    },
+    "-5,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 9
+    },
+    "-4,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 9
+    },
+    "-3,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 9
+    },
+    "-2,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 9
+    },
+    "-1,9": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 9
+    },
+    "0,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 9
+    },
+    "1,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 9,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "2,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 9
+    },
+    "3,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 9,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "4,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 9
+    },
+    "5,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 9
+    },
+    "6,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 9
+    },
+    "7,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 9
+    },
+    "8,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 9
+    },
+    "9,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 9
+    },
+    "10,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 9,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "11,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 9,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "12,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 9
+    },
+    "13,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 9
+    },
+    "14,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 9
+    },
+    "15,9": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 9,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "-15,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -15,
+      "y": 10
+    },
+    "-14,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -14,
+      "y": 10
+    },
+    "-13,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -13,
+      "y": 10,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "-12,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -12,
+      "y": 10
+    },
+    "-11,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -11,
+      "y": 10,
+      "item": {
+        "char": ")",
+        "name": "Weapon",
+        "type": "attack",
+        "value": 10
+      }
+    },
+    "-10,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -10,
+      "y": 10
+    },
+    "-9,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -9,
+      "y": 10,
+      "item": {
+        "char": "*",
+        "name": "Gem",
+        "type": "gold",
+        "value": 50
+      }
+    },
+    "-8,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -8,
+      "y": 10
+    },
+    "-7,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -7,
+      "y": 10
+    },
+    "-6,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -6,
+      "y": 10,
+      "monster": {
+        "char": "g",
+        "name": "Goblin",
+        "hp": 60,
+        "attack": 14,
+        "defense": 5,
+        "exp": 30,
+        "gold": 12,
+        "current_hp": 60
+      }
+    },
+    "-5,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -5,
+      "y": 10,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "-4,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -4,
+      "y": 10
+    },
+    "-3,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -3,
+      "y": 10
+    },
+    "-2,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -2,
+      "y": 10
+    },
+    "-1,10": {
+      "type": "floor",
+      "char": ".",
+      "x": -1,
+      "y": 10
+    },
+    "0,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 0,
+      "y": 10
+    },
+    "1,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 1,
+      "y": 10
+    },
+    "2,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 2,
+      "y": 10,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "3,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 3,
+      "y": 10,
+      "item": {
+        "char": "!",
+        "name": "Health Potion",
+        "type": "heal",
+        "value": 30
+      }
+    },
+    "4,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 4,
+      "y": 10,
+      "item": {
+        "char": "]",
+        "name": "Armor",
+        "type": "defense",
+        "value": 8
+      }
+    },
+    "5,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 5,
+      "y": 10
+    },
+    "6,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 6,
+      "y": 10,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "7,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 7,
+      "y": 10
+    },
+    "8,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 8,
+      "y": 10,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    },
+    "9,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 9,
+      "y": 10
+    },
+    "10,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 10,
+      "y": 10,
+      "item": {
+        "char": "+",
+        "name": "Key",
+        "type": "key",
+        "value": 1
+      }
+    },
+    "11,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 11,
+      "y": 10
+    },
+    "12,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 12,
+      "y": 10
+    },
+    "13,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 13,
+      "y": 10
+    },
+    "14,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 14,
+      "y": 10
+    },
+    "15,10": {
+      "type": "floor",
+      "char": ".",
+      "x": 15,
+      "y": 10,
+      "monster": {
+        "char": "s",
+        "name": "Slime",
+        "hp": 30,
+        "attack": 8,
+        "defense": 2,
+        "exp": 15,
+        "gold": 5,
+        "current_hp": 30
+      }
+    }
+  },
+  "learned_skills": [],
+  "active_buffs": [],
+  "shop_items": [
+    {
+      "id": 1,
+      "name": "Small HP Potion",
+      "desc": "Restore 30 HP",
+      "price": 30,
+      "stock": 99,
+      "type": "consumable",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": 30,
+      "key_value": null
+    },
+    {
+      "id": 2,
+      "name": "Medium HP Potion",
+      "desc": "Restore 80 HP",
+      "price": 80,
+      "stock": 49,
+      "type": "consumable",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": 80,
+      "key_value": null
+    },
+    {
+      "id": 3,
+      "name": "Large HP Potion",
+      "desc": "Restore 200 HP",
+      "price": 200,
+      "stock": 19,
+      "type": "consumable",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": 200,
+      "key_value": null
+    },
+    {
+      "id": 4,
+      "name": "Iron Sword",
+      "desc": "ATK +10",
+      "price": 100,
+      "stock": 9,
+      "type": "permanent",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "attack",
+      "permanent_value": 10,
+      "heal_value": null,
+      "key_value": null
+    },
+    {
+      "id": 5,
+      "name": "Steel Shield",
+      "desc": "DEF +8",
+      "price": 80,
+      "stock": 9,
+      "type": "permanent",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "defense",
+      "permanent_value": 8,
+      "heal_value": null,
+      "key_value": null
+    },
+    {
+      "id": 6,
+      "name": "ATK Potion",
+      "desc": "ATK +5 (5 turns)",
+      "price": 50,
+      "stock": 19,
+      "type": "buff",
+      "effect_target": "attack",
+      "effect_value": 5.0,
+      "effect_duration": 5,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": null,
+      "key_value": null
+    },
+    {
+      "id": 7,
+      "name": "DEF Potion",
+      "desc": "DEF +5 (5 turns)",
+      "price": 50,
+      "stock": 19,
+      "type": "buff",
+      "effect_target": "defense",
+      "effect_value": 5.0,
+      "effect_duration": 5,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": null,
+      "key_value": null
+    },
+    {
+      "id": 8,
+      "name": "Yellow Key",
+      "desc": "Opens yellow door",
+      "price": 20,
+      "stock": 99,
+      "type": "key",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": null,
+      "key_value": 1
+    },
+    {
+      "id": 9,
+      "name": "Blue Key",
+      "desc": "Opens blue door",
+      "price": 80,
+      "stock": 19,
+      "type": "key",
+      "effect_target": "",
+      "effect_value": null,
+      "effect_duration": null,
+      "permanent_attr": "",
+      "permanent_value": null,
+      "heal_value": null,
+      "key_value": 3
+    }
+  ],
+  "log_entries": [
+    [
+      "Entered the mysterious dungeon. Adventure begins!",
+      "system"
+    ],
+    [
+      "Defeat monsters for EXP and gold. Level up to learn skills!",
+      "system"
+    ],
+    [
+      "Find Merchant (M) to buy items!",
+      "system"
+    ],
+    [
+      "WARNING: Monster stats DOUBLE every floor!",
+      "warning"
+    ],
+    [
+      "Every 18th floor is a BOSS room. Defeat the boss to proceed!",
+      "warning"
+    ],
+    [
+      "Game saved.",
+      "system"
+    ],
+    [
+      "Game saved.",
+      "system"
+    ]
+  ],
+  "auto_play": false,
+  "boss_defeated": false,
+  "boss_floor_shown": false,
+  "game_over": false,
+  "config_overrides": {
+    "AUTO_MOVE_DELAY_MS": 200
+  }
+}
