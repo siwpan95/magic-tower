@@ -5220,6 +5220,10 @@
     [
       "Game saved.",
       "system"
+    ],
+    [
+      "Game loaded.",
+      "system"
     ]
   ],
   "auto_play": false,
