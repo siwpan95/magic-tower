@@ -42,9 +42,15 @@ Requirements: Python 3.10+ (tested on 3.13/3.14), Tkinter (bundled with CPython)
 Build the Windows exe:
 
 ```bash
-pyinstaller magic-tower.spec        # windowed
-pyinstaller magic-tower-dbg.spec    # with console (debug)
+pip install pyinstaller
+
+pyinstaller --noconsole --onefile --name magic-tower main.py   # windowed
+pyinstaller --onefile --name magic-tower-dbg main.py           # with console (debug)
 ```
+
+Output goes to `dist/` (git-ignored). The `*.spec` files contain machine-specific absolute paths and
+are **not committed** — regenerate one with
+`pyi-makespec --noconsole --onefile --name magic-tower main.py` if you need pinned build options.
 
 ## Controls
 
@@ -70,8 +76,9 @@ ui/tkinter_ui.py        Tkinter UI: map rendering, info panels, modals, tray ico
 data/game_data.xlsx     all game numbers (balance tweaks go here)
 test_excel_loader.py    Excel loading test
 test_integration.py     import + core logic integration test
-magic-tower*.spec       PyInstaller specs
 ```
+
+`build/`, `dist/` and local `*.spec` files are git-ignored and not committed.
 
 ## Data sheets (`data/game_data.xlsx`)
 

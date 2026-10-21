@@ -49,11 +49,16 @@ python main.py
 ### 打包成 exe
 
 ```bash
-pyinstaller magic-tower.spec        # 窗口版（console=False）
-pyinstaller magic-tower-dbg.spec    # 调试版（带控制台输出）
+pip install pyinstaller
+
+pyinstaller --noconsole --onefile --name magic-tower main.py   # 窗口版
+pyinstaller --onefile --name magic-tower-dbg main.py           # 调试版（保留控制台）
 ```
 
-产物输出到 `dist/`。
+产物输出到 `dist/`（目录已被 `.gitignore` 忽略）。
+
+> 说明：打包用的 `*.spec` 内含本机绝对路径，按 `.gitignore` 规则**不入库**；需要固定打包参数时，
+> 先 `pyi-makespec --noconsole --onefile --name magic-tower main.py` 生成 spec 再按需修改。
 
 ---
 
@@ -116,8 +121,9 @@ magic-tower/
 ├── data/game_data.xlsx     # 全部游戏数值（改这里即可调整平衡性）
 ├── test_excel_loader.py    # 数据表加载测试
 ├── test_integration.py     # 模块导入与核心逻辑集成测试
-└── magic-tower.spec / magic-tower-dbg.spec   # PyInstaller 打包配置
 ```
+
+> 打包产生的 `build/`、`dist/` 与本地 `*.spec` 均未入库（见 `.gitignore`）。
 
 **分层约定**：`ecs/` 只管实体与系统，`game/` 管世界状态与规则，`ui/` 只做渲染与输入；
 UI 通过 `GameWorld.trigger/on` 的事件总线拿通知，不直接改写内部状态。
