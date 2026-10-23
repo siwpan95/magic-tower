@@ -12,10 +12,15 @@
 ## 特性一览
 
 - **ECS 内核**：实体只是自增 ID，数据挂组件（Component），行为交给系统（System），逻辑与渲染彻底解耦。
-- **无限楼层**：以玩家为中心按需生成（`VIEW_RADIUS=10`），远处地块自动回收（`CLEANUP_RADIUS=15`）；楼层越高怪物属性按 `2^(楼层-1)` 翻倍。
+- **无限楼层（分块地牢）**：地图按 20×20 分块（`CHUNK_SIZE`，原点 (0,0) 为块 (0,0) 中心），每块用
+  [worldbuilder](https://gitee.com/siwpan/procgen) 的 **BSP 算法**生成「房间 + 走廊」并保证连通；
+  四边中点开口互接相邻块，块中心必定连通（玩家出生点永不被封死）；每块在离块心最远的房间里
+  放一个下楼楼梯。地块按需生成、远处自动回收（`CLEANUP_RADIUS=30`）；楼层越高怪物属性按 `2^(楼层-1)` 翻倍。
+- **精英怪物**：3 层起每块约 8% 概率刷出精英——`worldbuilder.NameGenerator` 生成称号
+  （如 `Orc「Zyorzyavyn」`），全属性 ×1.5、经验金币翻倍，字符大写以示区分。
 - **完整养成线**：战斗 → 经验/金币 → 升级（+10 最大 HP / +2 攻 / +1 防 / +1 技能点）→ 三选一技能 → Buff → 商店消费。
-- **Boss 层**：每 18 层生成一间 7×7 的 Boss 房，击败「Demon Lord」才刷出下层楼梯。
-- **挂机 AI**：`AutoPlayer` 探索优先、BFS 寻路、可打怪判断、循环检测与强制脱困；5 档速度（400/200/100/50/10 ms）。
+- **Boss 层**：每 18 层生成一间 7×7 的 Boss 房，击败带随机称号的「Demon Lord」才刷出下层楼梯。
+- **挂机 AI**：`AutoPlayer` 探索优先、BFS 寻路、整场战斗期望伤害评估（不安全的架不打）、循环检测与强制脱困；5 档速度（400/200/100/50/10 ms）。
 - **系统托盘**：可最小化到托盘后台挂机，托盘菜单支持切换挂机、保存、退出存档。
 - **数据驱动**：怪物、道具、Boss、商店、技能、引擎常量全部写在 `data/game_data.xlsx`，改表即改游戏，无需改代码。
 
@@ -44,7 +49,8 @@ pip install -r requirements.txt
 python main.py
 ```
 
-依赖只有三个：`openpyxl`（读 Excel 数据表）、`Pillow` + `pystray`（系统托盘图标）。
+依赖共四个：`openpyxl`（读 Excel 数据表）、`Pillow` + `pystray`（系统托盘图标）、
+`worldbuilder`（程序化生成库：BSP 地牢 / 加权掉落表 / 名字生成，PyPI 包名 `worldbuilder`，随依赖装上 numpy）。
 
 ### 打包成 exe
 
@@ -111,16 +117,18 @@ magic-tower/
 │   ├── components.py       #   Position / Renderable / Fighter / Player / Item / Stairs / Merchant
 │   └── systems.py          #   Movement / Combat / Pickup / Stair System
 ├── game/
-│   ├── world.py            # GameWorld：ECS 容器 + 地图生成 + 玩家状态 + 事件总线 + 存档
-│   ├── config.py           # 引擎常量（屏幕/瓦片/生成概率/挂机延时）
+│   ├── world.py            # GameWorld：ECS 容器 + 玩家状态 + 事件总线 + 存档
+│   ├── worldgen.py         # 程序化生成（worldbuilder 适配层）：分块 BSP 地牢 / 掉落表 / 精英命名
+│   ├── config.py           # 引擎常量（屏幕/瓦片/分块尺寸/生成概率/挂机延时）
 │   ├── data_loader.py      # 读取 data/game_data.xlsx，编译技能效果
-│   ├── auto_player.py      # 挂机 AI（探索优先 + BFS 寻路 + 循环检测）
+│   ├── auto_player.py      # 挂机 AI（探索优先 + BFS 寻路 + 战斗风险评估）
 │   └── utils.py            # 楼层倍率、升级经验、技能效果应用
 ├── ui/
 │   └── tkinter_ui.py       # Tkinter 界面：地图绘制、信息面板、弹窗、托盘
 ├── data/game_data.xlsx     # 全部游戏数值（改这里即可调整平衡性）
 ├── test_excel_loader.py    # 数据表加载测试
 ├── test_integration.py     # 模块导入与核心逻辑集成测试
+├── test_worldgen.py        # 程序化生成测试（确定性/连通性/掉落/精英/不覆盖）
 ```
 
 > 打包产生的 `build/`、`dist/` 与本地 `*.spec` 均未入库（见 `.gitignore`）。
@@ -134,7 +142,7 @@ UI 通过 `GameWorld.trigger/on` 的事件总线拿通知，不直接改写内�
 
 | 工作表 | 主要列 | 说明 |
 | --- | --- | --- |
-| `constants` | key / value / value_type | 覆盖 `config.py` 的同名引擎常量 |
+| `constants` | key / value / value_type | 覆盖 `config.py` 的同名引擎常量（含 `CHUNK_SIZE` / `ELITE_*` / `NAME_STYLE`） |
 | `tiles` | key / char | 墙、地板、门、楼梯、玩家、商人字符 |
 | `monsters` | char / name / hp / attack / defense / exp / gold | 普通怪物 |
 | `boss` | 同上 | Boss 模板 |
@@ -145,6 +153,10 @@ UI 通过 `GameWorld.trigger/on` 的事件总线拿通知，不直接改写内�
 
 改完表重启游戏即生效；字段缺失时回落到 `config.py` 的默认值。
 
+> 生成机制说明：普通层不再是逐格噪声判定，而是按块走 `worldbuilder` 的 BSP 地牢生成
+> （怪物/道具走加权掉落表，权重见 `game/worldgen.py`）；每块在离块心最远的房间放一个楼梯，
+> 因此 `GEN_CHANCE_STAIRS`（逐格楼梯概率）已移除。Boss 层仍为手写 7×7 竞技场。
+
 ---
 
 ## 测试
@@ -152,6 +164,7 @@ UI 通过 `GameWorld.trigger/on` 的事件总线拿通知，不直接改写内�
 ```bash
 python test_excel_loader.py    # 校验 Excel 数据加载结果
 python test_integration.py     # 校验模块导入与核心逻辑
+python test_worldgen.py        # 校验程序化生成（确定性/连通性/掉落/精英/不覆盖/挂机回归）
 ```
 
 ---

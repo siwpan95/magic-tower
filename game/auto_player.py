@@ -107,11 +107,14 @@ class AutoPlayer:
             self._last_direction = move
             return move
 
-        # ---- Phase 4: fight anything if healthy ----
-        move = self._scan_adjacent(px, py, "monster")
-        if move and hp_ratio > 0.25:
-            self._last_direction = move
-            return move
+        # ---- Phase 4: fight an adjacent monster only if the whole
+        #      exchange is safe (same risk model as _scan_safe_monster) ----
+        for dx, dy in DIRS:
+            tile = self.world.get_tile(px + dx, py + dy)
+            if tile and tile.get("monster") and self._fight_is_safe(
+                    tile["monster"]):
+                self._last_direction = (dx, dy)
+                return (dx, dy)
 
         # ---- Fallback: any valid move ----
         move = self._any_valid_move(px, py)
@@ -120,6 +123,28 @@ class AutoPlayer:
             return move
 
         return None
+
+    def _fight_is_safe(self, monster: dict) -> bool:
+        """Whole-fight risk model: expected damage over the full exchange
+        must stay below 35% of current HP (mirrors _scan_safe_monster)."""
+        pd = self.world.player_data
+        hp_ratio = pd["hp"] / max(pd["max_hp"], 1)
+        if hp_ratio < 0.15:
+            return False
+        m_dmg = max(1, monster["attack"] - pd["defense"])
+        for b in self.world.active_buffs:
+            if b["effects"].get("defense_multiplier"):
+                m_dmg = max(1, int(m_dmg / b["effects"]["defense_multiplier"]))
+        dr = pd.get("dmg_reduction", 0) or 0
+        if dr:
+            m_dmg = max(1, m_dmg - dr)
+        p_dmg = max(1, pd["attack"] - monster["defense"])
+        for b in self.world.active_buffs:
+            if b["effects"].get("attack_multiplier"):
+                p_dmg = int(p_dmg * b["effects"]["attack_multiplier"])
+        turns_to_kill = (monster["current_hp"] + p_dmg - 1) // p_dmg
+        expected_dmg = m_dmg * max(0, turns_to_kill - 1)
+        return expected_dmg <= pd["hp"] * 0.35
 
     def auto_learn_skill(self, available_skills: list[dict]) -> Optional[dict]:
         """Adaptive skill selection based on current battle state."""
@@ -265,6 +290,7 @@ class AutoPlayer:
         """Intelligently choose: explore unknown, seek monster for exp, or seek item."""
 
         # ---- Farming mode: if HP high, actively seek safe monsters ----
+        monster_targets: list = []
         if hp_ratio > 0.65:
             monster_targets = self._find_visible_monsters(px, py)
             for tx, ty in monster_targets:
@@ -299,7 +325,12 @@ class AutoPlayer:
     def _find_visible_monsters(
         self, px: int, py: int, radius: int = 10
     ) -> list[tuple[int, int]]:
-        """Return positions of visible monsters sorted by distance."""
+        """Return positions of visible monsters sorted by distance.
+
+        A monster is only worth seeking when the WHOLE fight is safe:
+        expected damage over the full exchange must stay below 35% of
+        current HP (same risk model as ``_scan_safe_monster``).
+        """
         result = []
         pd = self.world.player_data
         for dy in range(-radius, radius + 1):
@@ -314,9 +345,8 @@ class AutoPlayer:
                 # Quick safety: skip if boss and we're too hurt
                 if m.get("isBoss") and pd["hp"] / max(pd["max_hp"], 1) < 0.5:
                     continue
-                # Skip if monster is too dangerous
-                m_dmg = max(1, m["attack"] - pd["defense"])
-                if m_dmg > pd["hp"] * 0.4:
+                # Whole-fight risk model
+                if not self._fight_is_safe(m):
                     continue
                 dist = abs(dx) + abs(dy)
                 result.append((tx, ty, dist))
@@ -479,8 +509,13 @@ class AutoPlayer:
     # ---- Simple fallback: any valid direction ----
 
     def _any_valid_move(self, px: int, py: int) -> Optional[tuple[int, int]]:
-        """Pick any valid adjacent move. No bias — just don't go back into a wall."""
+        """Pick any valid adjacent move. No bias — just don't go back into a wall.
+
+        Monster tiles are a last resort: stepping into a fight should only
+        happen when there is genuinely nothing else to do.
+        """
         candidates: list[tuple[int, int]] = []
+        desperate: list[tuple[int, int]] = []
         reverse = (-self._last_direction[0], -self._last_direction[1]) if self._last_direction else None
 
         for dx, dy in DIRS:
@@ -489,13 +524,17 @@ class AutoPlayer:
                 continue
             tile = self.world.get_tile(px + dx, py + dy)
             if tile and tile.get("type") != "wall":
-                candidates.append((dx, dy))
+                if tile.get("monster"):
+                    desperate.append((dx, dy))
+                else:
+                    candidates.append((dx, dy))
 
-        if not candidates:
+        pool = candidates or desperate
+        if not pool:
             # Desperate: allow anything including reversal
             for dx, dy in DIRS:
                 tile = self.world.get_tile(px + dx, py + dy)
                 if tile and tile.get("type") != "wall":
                     return (dx, dy)
 
-        return random.choice(candidates) if candidates else None
+        return random.choice(pool) if pool else None

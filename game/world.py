@@ -19,6 +19,7 @@ from ecs.components import (
 )
 from ecs.entity import EntityManager
 from game import config as cfg
+from game.worldgen import WorldGenerator, chunk_index
 
 
 class GameWorld:
@@ -81,6 +82,9 @@ class GameWorld:
             if not k.startswith("_") and k.isupper()
         }
         self.config.update(self._game_data)  # Excel content data overlays
+
+        # --- Procedural world generation (worldbuilder adapter) ---
+        self.generator = WorldGenerator(self)
 
         # --- Log ---
         self.log_entries: list[tuple[str, str]] = []  # (message, type)
@@ -174,56 +178,42 @@ class GameWorld:
         """Generate the initial area around player."""
         self.player_data["x"] = 0
         self.player_data["y"] = 0
+        self.generator.clear_cache()
         self.generate_area_around(0, 0)
         self.ensure_player_on_floor()
 
     def generate_area_around(self, cx: int, cy: int):
-        """Generate tiles in radius around center."""
+        """Generate tiles in radius around center.
+
+        Boss floors keep their hand-built arena; every other floor is an
+        infinite chunked dungeon produced by the worldbuilder adapter.
+        """
         is_boss_floor = self.current_floor % cfg.BOSS_FLOOR_INTERVAL == 0
 
         if is_boss_floor:
             self._generate_boss_room(cx, cy)
-        else:
-            radius = 5
-            for dx in range(-radius, radius + 1):
-                for dy in range(-radius, radius + 1):
-                    x, y = cx + dx, cy + dy
-                    key = f"{x},{y}"
-                    if key not in self.map_data:
-                        self._generate_tile(x, y)
+            return
 
-    def _generate_tile(self, x: int, y: int):
-        """Generate a single tile using noise."""
-        noise = (math.sin(x * 0.5) * math.cos(y * 0.5) + 1) / 2
+        # New floor (or fresh start): drop cached layouts so this floor's
+        # deterministic seed space restarts, then materialise around (cx, cy).
+        self.generator.clear_cache()
+        radius = 5
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                self._ensure_tile(cx + dx, cy + dy)
 
-        if noise < 0.3:
-            tile = {"type": "wall", "char": cfg.TILES["WALL"], "x": x, "y": y}
-        else:
-            tile = {
-                "type": "floor",
-                "char": cfg.TILES["FLOOR"],
-                "x": x, "y": y,
-            }
-            # Sequential probability checks (like original JS)
-            r = random.random()
-            if r < cfg.GEN_CHANCE_ITEM:
-                tile["item"] = self._get_random_item(self)
-            elif r < cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER:
-                tile["monster"] = self._get_random_monster()
-            elif r < cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER + cfg.GEN_CHANCE_DOOR:
-                tile["door"] = True
-                tile["char"] = cfg.TILES["DOOR"]
-            elif r < (cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER
-                      + cfg.GEN_CHANCE_DOOR + cfg.GEN_CHANCE_STAIRS):
-                tile["stairs"] = True
-                tile["char"] = cfg.TILES["STAIRS"]
-            elif r < (cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER
-                      + cfg.GEN_CHANCE_DOOR + cfg.GEN_CHANCE_STAIRS
-                      + cfg.GEN_CHANCE_MERCHANT):
-                tile["merchant"] = True
-                tile["char"] = cfg.TILES["MERCHANT"]
+    def _ensure_tile(self, x: int, y: int):
+        """Materialise the chunk containing (x, y) when the tile is missing.
 
-        self.map_data[f"{x},{y}"] = tile
+        Existing tiles are never overwritten (no-overwrite semantics), so
+        player progress inside a chunk survives lazy regeneration.
+        """
+        key = f"{x},{y}"
+        if key in self.map_data:
+            return
+        size = self.generator.chunk_size
+        self.generator.materialize_chunk(
+            chunk_index(x, size), chunk_index(y, size))
 
     def _generate_boss_room(self, cx: int, cy: int):
         size = cfg.BOSS_ROOM_SIZE
@@ -252,6 +242,9 @@ class GameWorld:
                         boss["gold"] = int(boss["gold"] * mult)
                         boss["current_hp"] = boss["hp"]
                         boss["isBoss"] = True
+                        # Generated epithet, e.g. "Demon Lord「Vorwyn」"
+                        boss["name"] = self.generator.elite_name(
+                            boss.get("name", "Demon Lord"))
                         tile["monster"] = boss
                         self.boss_defeated = False
 
@@ -293,31 +286,6 @@ class GameWorld:
                         tile["char"] = cfg.TILES["STAIRS"]
                     return
 
-    def _get_random_monster(self) -> dict:
-        """Get a random monster with floor multiplier applied."""
-        from game.utils import calculate_monster_multiplier
-        pool = list(self.config.get("MONSTER_TYPES", []))
-        if self.current_floor == 1:
-            pool = pool[:2]
-        elif self.current_floor <= 5:
-            pool = pool[:3]
-
-        monster = {**random.choice(pool)}
-        mult = self.monster_multiplier()
-        monster["hp"] = int(monster["hp"] * mult)
-        monster["attack"] = int(monster["attack"] * mult)
-        monster["defense"] = int(monster["defense"] * mult)
-        monster["exp"] = int(monster["exp"] * mult)
-        monster["gold"] = int(monster["gold"] * mult)
-        monster["current_hp"] = monster["hp"]
-        return monster
-
-    @staticmethod
-    def _get_random_item(world=None) -> dict:
-        if world is None:
-            return {"char": "?", "name": "Unknown", "type": "misc", "value": 0}
-        return {**random.choice(world.config.get("ITEM_TYPES", []))}
-
     def ensure_player_on_floor(self):
         pk = f"{self.player_data['x']},{self.player_data['y']}"
         if pk not in self.map_data or self.map_data[pk].get("type") == "wall":
@@ -350,9 +318,7 @@ class GameWorld:
         x1, y1, x2, y2 = self.get_visible_area()
         for y in range(y1, y2 + 1):
             for x in range(x1, x2 + 1):
-                key = f"{x},{y}"
-                if key not in self.map_data:
-                    self._generate_tile(x, y)
+                self._ensure_tile(x, y)
         # Cleanup far tiles
         self._cleanup_distant_tiles()
 

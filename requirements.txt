@@ -2,3 +2,4 @@
 openpyxl
 Pillow
 pystray
+worldbuilder>=1.0.0   # procedural generation: BSP dungeon / loot tables / name generator

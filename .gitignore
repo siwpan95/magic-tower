@@ -22,3 +22,7 @@ __pycache__/
 build/
 dist/
 *.spec
+
+# Python virtual environment
+.venv/
+venv/
