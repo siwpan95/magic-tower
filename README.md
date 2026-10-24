@@ -94,7 +94,7 @@ pyinstaller --onefile --name magic-tower-dbg main.py           # 调试版（保
 - **商人**：随机出现在地图上（生成概率 3%），点击相邻格进入商店，可购买永久属性提升、治疗、钥匙与限时 Buff。
 - **技能**：`ALL_SKILLS` 中随机三选一，可重复升级至 `max_level`；技能效果由 Excel 行编译成函数（`add_attr` / `add_attr_pair` / `set_flag` 等）。
 - **Buff**：带持续回合数，每步消耗 1 回合，作用于攻防倍率等。
-- **存档**：`town_save.json`（项目根目录）。启动时检测到存档会询问是否继续；关闭窗口自动保存。
+- **存档**：`town_save.json`（源码运行为项目根目录；打包后的 exe 存到 exe 同级目录）。启动时检测到存档会询问是否继续；关闭窗口自动保存。
 
 ### 默认数值（来自 `data/game_data.xlsx`）
 

@@ -6,6 +6,7 @@ import json
 import math
 import os
 import random
+import sys
 from typing import Any, Callable, Optional
 
 from ecs.components import (
@@ -608,6 +609,12 @@ class GameWorld:
 
     @staticmethod
     def _save_path() -> str:
+        if getattr(sys, "frozen", False):
+            # PyInstaller onefile: __file__ resolves inside the one-shot _MEIPASS
+            # temp dir, which is wiped on exit. Persist next to the executable.
+            return os.path.join(
+                os.path.dirname(os.path.abspath(sys.executable)), "town_save.json"
+            )
         # Save in the project root directory (next to main.py)
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(project_root, "town_save.json")

@@ -146,6 +146,12 @@
   整体失败，表现为「一跑就全挂」而非代码回归；本机开发环境 `E:\Python314`）；
   修正两处过期描述——楼层倍率 `2^(楼层-1)` → 线性 `1 + 0.10·(楼层-1)`，
   默认数值表改为 40 模板 + Boss 由当层最强小怪推导（模板值仅作空池回退）。
+- **PyInstaller onefile 冻结后自动存档静默丢失**：`_save_path()` 用 `__file__` 反推
+  项目根目录，冻结环境下 `__file__` 落在一次性临时目录 `_MEIPASS` 内，`town_save.json`
+  每次重启即被清掉（v1.0.0 同款缺陷，冒烟测试暴露）。改为 `sys.frozen` 时存到
+  **exe 同级目录**（`sys.executable` 所在目录），源码运行行为不变。
+- 打包命令补 `--add-data "data/game_data.xlsx;data"`（此前 CLI 打包漏掉数据文件，
+  exe 启动即 `FileNotFoundError`；v1.0.0 靠含 datas 的 `.spec` 才带上）。
 
 ## [1.0.0] - 2026-08-27
 
