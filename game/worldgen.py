@@ -206,7 +206,20 @@ class WorldGenerator:
         anchors = [centre,
                    (0, size // 2), (size - 1, size // 2),
                    (size // 2, 0), (size // 2, size - 1)]
+
+        # The player spawns on the chunk centre.  Guarantee a 3x3 breathing
+        # room around it: an L-shaped escape corridor may leave the centre
+        # flanked by walls on three sides, which reads as "stuck in a closet"
+        # the moment the game opens.
+        ccx, ccy = centre
         keep_clear = {centre}   # spawn point + escape corridors stay empty
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                gx, gy = ccx + dx, ccy + dy
+                if 0 <= gx < size and 0 <= gy < size:
+                    grid[gy][gx] = 1
+                    keep_clear.add((gx, gy))   # no ambush on the first step
+
         for ax, ay in anchors:
             grid[ay][ax] = 1
             if rooms:
@@ -280,12 +293,29 @@ class WorldGenerator:
     # ---- spawn tables ----
 
     def _monster_table(self, seed: int) -> Optional[wb.LootTable]:
-        """Weighted monster table: rarer (higher HP) monsters weigh less."""
+        """Weighted monster table.
+
+        Base weight is ``1000 / hp`` (fodder is common).  On deeper floors the
+        weight is multiplied by ``(1 + floor * depth_bias * hp / max_hp)`` so
+        the new arrivals actually take over the encounter mix instead of the
+        floor staying a rat farm forever.
+        """
         pool = self._monster_pool()
         if not pool:
             return None
-        entries = [(m["name"], max(1.0, 1000.0 / max(1, m["hp"])), (1, 1))
-                   for m in pool]
+        floor = self.world.current_floor
+        max_hp = max(1, max(int(m.get("hp", 1)) for m in pool))
+        bias = float(self.world.config.get("MONSTER_DEPTH_BIAS", 0.12))
+
+        entries = []
+        for m in pool:
+            hp = max(1, int(m.get("hp", 1)))
+            # Fodder stays common, but depth adds a *flat* bonus scaled by how
+            # tough the species is relative to the toughest one unlocked, so
+            # late floors are dominated by the new arrivals rather than rats.
+            weight = 1000.0 / hp
+            weight *= 1.0 + floor * bias * (hp / max_hp) ** 2
+            entries.append((m["name"], weight, (1, 1)))
         return wb.LootTable(entries, seed=seed)
 
     def _item_table(self, seed: int) -> Optional[wb.LootTable]:
@@ -296,14 +326,40 @@ class WorldGenerator:
         return wb.LootTable(entries, seed=seed)
 
     def _monster_pool(self) -> list[dict]:
-        """Monster templates available on the current floor (tier gating)."""
+        """Monster templates unlocked on the current floor.
+
+        Each template carries ``min_floor`` (from the SRD-derived CR curve in
+        ``tools/gen_bestiary.py``), so the pool grows monotonically with depth
+        and every template is reachable.  If the sheet predates ``min_floor``
+        we fall back to index-based tiering so old data files still work.
+        """
         pool = list(self.world.config.get("MONSTER_TYPES", []))
+        if not pool:
+            return pool
+
         floor = self.world.current_floor
+        if any("min_floor" in m for m in pool):
+            unlocked = [m for m in pool if int(m.get("min_floor", 1)) <= floor]
+            return unlocked or pool[:1]
+
+        # Legacy fallback (no min_floor column)
         if floor == 1:
-            pool = pool[:2]
-        elif floor <= 5:
-            pool = pool[:3]
+            return pool[:2]
+        if floor <= 5:
+            return pool[:3]
         return pool
+
+    def strongest_unlocked(self) -> Optional[dict]:
+        """Strongest monster template unlocked on the current floor (by HP).
+
+        Used to scale bosses off the same curve the player has been fighting,
+        so a boss is a step up from the floor's top trash instead of a
+        separately-tuned number that drifts out of sync.
+        """
+        pool = self._monster_pool()
+        if not pool:
+            return None
+        return max(pool, key=lambda m: int(m.get("hp", 0)))
 
     def _make_monster(self, name: str, rng: random.Random) -> dict:
         template = next(
@@ -313,7 +369,13 @@ class WorldGenerator:
             template = {"char": "?", "name": name, "hp": 1, "attack": 1,
                         "defense": 0, "exp": 0, "gold": 0}
         monster = {**template}
-        mult = self.world.monster_multiplier()
+        # No per-floor multiplier here.  Difficulty already comes from two
+        # other axes — the CR curve and the ``min_floor`` depth gate — and
+        # stacking a third one on top made monster DEF outrun the player's
+        # ATK: by floor 2 the player's damage collapsed to the max(1, ...) 1
+        # floor (measured: Dire Wolf took 1/hit and dealt 22).  The floor
+        # multiplier is now reserved for bosses (see GameWorld._generate_boss_room).
+        mult = 1.0
         monster["hp"] = int(monster["hp"] * mult)
         monster["attack"] = int(monster["attack"] * mult)
         monster["defense"] = int(monster["defense"] * mult)

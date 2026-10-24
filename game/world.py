@@ -42,6 +42,9 @@ class GameWorld:
         self.running: bool = True
         self.boss_defeated: bool = False
         self.boss_floor_shown: bool = False
+        # Boss floors are a single arena, not one per chunk (see
+        # generate_area_around).  Tracks which floor the arena belongs to.
+        self._boss_arena_floor: Optional[int] = None
         self.open_shop: bool = False
 
         # --- Auto-play state ---
@@ -85,6 +88,7 @@ class GameWorld:
 
         # --- Procedural world generation (worldbuilder adapter) ---
         self.generator = WorldGenerator(self)
+        self._cleaned_for: Optional[tuple] = None   # last pos we pruned around
 
         # --- Log ---
         self.log_entries: list[tuple[str, str]] = []  # (message, type)
@@ -169,8 +173,18 @@ class GameWorld:
     def set_tile(self, x: int, y: int, tile: dict):
         self.map_data[f"{x},{y}"] = tile
 
-    def monster_multiplier(self) -> int:
-        return 2 ** (self.current_floor - 1)
+    def monster_multiplier(self) -> float:
+        """Linear per-floor scaling on top of the CR-based bestiary tiers.
+
+        Was ``2 ** (floor - 1)`` (floor 20 => 524288x), which combined with the
+        bestiary's own CR curve produced a double-exponential difficulty wall:
+        average monster HP hit ~9e7 by floor 20 and every run ended in a
+        one-shot.  Now the multiplier is gentle (1 + 0.10*(floor-1)) because the
+        *species mix* already escalates with depth — floor 1 fields Kobolds,
+        floor 20 fields Pit Fiends.
+        """
+        per = float(self.config.get("FLOOR_MONSTER_MULT", cfg.FLOOR_MONSTER_MULT))
+        return 1.0 + per * (self.current_floor - 1)
 
     # ---- Map generation ----
 
@@ -191,7 +205,14 @@ class GameWorld:
         is_boss_floor = self.current_floor % cfg.BOSS_FLOOR_INTERVAL == 0
 
         if is_boss_floor:
-            self._generate_boss_room(cx, cy)
+            # One arena per boss floor.  Building a room for *every* chunk
+            # that materialised meant: a fresh boss each time, boss_defeated
+            # reset to False, and the player teleported to the new room's
+            # entry — so the boss could never be cleared and the floor was a
+            # dead end.
+            if self._boss_arena_floor != self.current_floor:
+                self._boss_arena_floor = self.current_floor
+                self._generate_boss_room(cx, cy)
             return
 
         # New floor (or fresh start): drop cached layouts so this floor's
@@ -235,13 +256,31 @@ class GameWorld:
 
                     if dx == 0 and dy == 0:
                         boss = {**self.config.get("BOSS_TEMPLATE", {})}
-                        boss["hp"] = int(boss["hp"] * mult)
-                        boss["attack"] = int(boss["attack"] * mult)
-                        boss["defense"] = int(boss["defense"] * mult)
-                        boss["exp"] = int(boss["exp"] * mult)
-                        boss["gold"] = int(boss["gold"] * mult)
+                        # Scale off the floor's strongest normal monster.  The
+                        # old "template x floor multiplier" made the floor-18
+                        # boss 5400 HP / 162 DEF against a ~106 ATK player:
+                        # damage floored to 1/hit while it dealt 209, so the
+                        # boss floor (a hard gate) could never be cleared.
+                        ref = self.generator.strongest_unlocked()
+                        hp_m = self.config.get("BOSS_HP_MULT", cfg.BOSS_HP_MULT)
+                        at_m = self.config.get("BOSS_ATK_MULT", cfg.BOSS_ATK_MULT)
+                        df_m = self.config.get("BOSS_DEF_MULT", cfg.BOSS_DEF_MULT)
+                        if ref:
+                            boss["hp"] = int(ref["hp"] * hp_m)
+                            boss["attack"] = int(ref["attack"] * at_m)
+                            boss["defense"] = int(ref["defense"] * df_m)
+                            boss["exp"] = int(ref.get("exp", 100) * hp_m)
+                            boss["gold"] = int(ref.get("gold", 50) * hp_m)
+                        else:
+                            # No pool (data file without monsters): old behaviour
+                            boss["hp"] = int(boss["hp"] * mult)
+                            boss["attack"] = int(boss["attack"] * mult)
+                            boss["defense"] = int(boss["defense"] * mult)
                         boss["current_hp"] = boss["hp"]
+                        # Both spellings: the world/UI side reads "isBoss",
+                        # the combat system historically read "is_boss".
                         boss["isBoss"] = True
+                        boss["is_boss"] = True
                         # Generated epithet, e.g. "Demon Lord「Vorwyn」"
                         boss["name"] = self.generator.elite_name(
                             boss.get("name", "Demon Lord"))
@@ -313,31 +352,40 @@ class GameWorld:
                 result.append((eid, (pos, rend)))
         return result
 
-    def ensure_visible_tiles_generated(self):
-        """Generate any tiles within view that don't exist yet."""
-        x1, y1, x2, y2 = self.get_visible_area()
+    def ensure_visible_tiles_generated(self, area=None):
+        """Generate any tiles within view that don't exist yet.
+
+        ``area`` lets the caller (the UI camera) ask for a box that is offset
+        from the player, so a dead-zoned camera never shows ungenerated void.
+        """
+        x1, y1, x2, y2 = area if area is not None else self.get_visible_area()
         for y in range(y1, y2 + 1):
             for x in range(x1, x2 + 1):
                 self._ensure_tile(x, y)
-        # Cleanup far tiles
-        self._cleanup_distant_tiles()
+        # Cleanup is O(map_data) with a key parse per tile; only the player
+        # moving can push tiles out of range, so skip it on pure redraws.
+        pos = (self.player_data["x"], self.player_data["y"])
+        if pos != self._cleaned_for:
+            self._cleaned_for = pos
+            self._cleanup_distant_tiles()
 
     def _cleanup_distant_tiles(self):
+        px, py = self.player_data["x"], self.player_data["y"]
+        radius = cfg.CLEANUP_RADIUS
         keys_to_remove = [
             k for k in self.map_data
-            if self._tile_distance(k) > cfg.CLEANUP_RADIUS
+            if self._tile_distance(k, px, py) > radius
         ]
         for k in keys_to_remove:
             del self.map_data[k]
 
-    def _tile_distance(self, key: str) -> float:
+    def _tile_distance(self, key: str, px: int, py: int) -> float:
         try:
-            parts = key.split(",")
-            x, y = int(parts[0]), int(parts[1])
+            x, y = key.split(",", 1)
+            dx = abs(int(x) - px)
+            dy = abs(int(y) - py)
         except (ValueError, IndexError):
             return float("inf")
-        dx = abs(x - self.player_data["x"])
-        dy = abs(y - self.player_data["y"])
         return max(dx, dy)
 
     # ---- Progress tracking ----

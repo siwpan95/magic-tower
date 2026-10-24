@@ -262,15 +262,61 @@ def test_09_boss_epithet():
 
 
 def test_10_floor_tiering():
-    """Floor 1 only spawns the first two monster species."""
+    """The bestiary is depth-gated: pools grow monotonically and stay legal."""
     print("\n--- test_10_floor_tiering ---")
     from game.world import GameWorld
+
     w = GameWorld()
-    species = {t["monster"]["name"].split("「")[0]
-               for t in w.map_data.values() if t.get("monster")}
-    pool = [m["name"] for m in w.config["MONSTER_TYPES"]]
-    check(species <= set(pool[:2]),
-          f"floor 1 pool restricted ({sorted(species)})")
+    all_templates = w.config["MONSTER_TYPES"]
+    all_names = {m["name"] for m in all_templates}
+
+    # Floor 1: every spawned species must be unlocked by its min_floor.
+    f1_species = {t["monster"]["name"].split("「")[0]
+                  for t in w.map_data.values() if t.get("monster")}
+    check(f1_species and f1_species <= all_names,
+          f"floor 1 spawns only known species ({sorted(f1_species)})")
+
+    f1_pool = w.generator._monster_pool()
+    check(all(int(m.get("min_floor", 1)) <= 1 for m in f1_pool),
+          f"floor 1 pool respects min_floor ({len(f1_pool)} species)")
+
+    # Pool size must grow (monotonically) with depth, and every one of the 40
+    # templates must be reachable by the deepest gated floor.
+    sizes, unlocked_at_max = [], 0
+    max_floor = 1
+    # The depth gate is 1 + int(cr * 2.2), so the 40 species are spread over
+    # floors 1..45 rather than all unlocking in the first 20 floors.  Scanning
+    # a fixed 1..30 window would fail on the last tiers by design.
+    deepest = max(int(m.get("min_floor", 1)) for m in all_templates)
+    for floor in range(1, deepest + 1):
+        w.current_floor = floor
+        pool = w.generator._monster_pool()
+        sizes.append(len(pool))
+        if len(pool) > unlocked_at_max:
+            unlocked_at_max = len(pool)
+            max_floor = floor
+    check(sizes == sorted(sizes),
+          f"pool grows with depth (1F={sizes[0]} -> {deepest}F={sizes[-1]})")
+    check(sizes[0] < sizes[-1],
+          f"deeper floors add species ({sizes[0]} -> {sizes[-1]})")
+    check(unlocked_at_max == len(all_templates),
+          f"all {len(all_templates)} species reachable (at floor {max_floor})")
+    # ... and the ladder is not so steep that it is effectively unreachable.
+    check(deepest <= 60,
+          f"last species unlocks by floor {deepest} (tower stays finishable)")
+
+    # Deep floors must actually be harder, not just wider.
+    def avg_hp(floor):
+        w.current_floor = floor
+        pool = w.generator._monster_pool()
+        table = w.generator._monster_table(seed=1234)
+        hp = {m["name"]: m["hp"] for m in pool}
+        picks = [table.roll()[0] for _ in range(300)]
+        return sum(hp[n] for n in picks) / len(picks)
+
+    check(avg_hp(20) > avg_hp(1) * 5,
+          f"floor 20 fights are much heavier than floor 1 "
+          f"({avg_hp(1):.0f} -> {avg_hp(20):.0f} base HP)")
 
 
 def test_11_save_load_roundtrip():
@@ -322,6 +368,70 @@ def test_12_autoplay_headless():
           "auto-player either alive or legitimately dead")
 
 
+def test_13_spawn_not_boxed_in():
+    """The spawn cell must not read as a closet (regression: 3 sides walled)."""
+    print("\n--- test_13_spawn_not_boxed_in ---")
+    from game.world import GameWorld
+
+    for trial in range(3):
+        w = GameWorld()
+        w.generate_initial_map()
+        px, py = w.player_data["x"], w.player_data["y"]
+        exits = []
+        for name, (dx, dy) in (("E", (1, 0)), ("W", (-1, 0)),
+                               ("N", (0, -1)), ("S", (0, 1))):
+            tile = w.map_data.get(f"{px + dx},{py + dy}", {})
+            if tile.get("type") == "floor":
+                exits.append(name)
+        check(len(exits) == 4,
+              f"run {trial}: spawn at ({px},{py}) has 4 open exits "
+              f"(got {len(exits)}: {exits})")
+
+    # And nothing ambushes you on the first step.
+    w = GameWorld()
+    w.generate_initial_map()
+    px, py = w.player_data["x"], w.player_data["y"]
+    adjacent_hostiles = [
+        (px + dx, py + dy)
+        for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+        if (dx or dy)
+        and w.map_data.get(f"{px + dx},{py + dy}", {}).get("monster")
+    ]
+    check(not adjacent_hostiles,
+          f"no monster adjacent to spawn (found {len(adjacent_hostiles)})")
+
+
+def test_14_difficulty_curve():
+    """Per-floor stat multiplier stays linear (regression: 2**(floor-1))."""
+    print("\n--- test_14_difficulty_curve ---")
+    from game.world import GameWorld
+    from game.utils import calculate_monster_multiplier
+
+    w = GameWorld()
+    mults = []
+    for floor in (1, 2, 5, 10, 20, 30):
+        w.current_floor = floor
+        mults.append((floor, w.monster_multiplier()))
+
+    check(abs(mults[0][1] - 1.0) < 1e-9,
+          f"floor 1 multiplier is 1.00x (got {mults[0][1]:.2f})")
+    check(all(isinstance(m, float) for _, m in mults),
+          "multipliers are floats (not integer powers)")
+    check(mults[-1][1] < 10,
+          f"floor 30 multiplier stays sane ({mults[-1][1]:.2f}x, was 536870912x)")
+
+    # Monotonic and linear in depth: multiplier - 1 must be proportional to
+    # (floor - 1), so the ratio is constant for every sampled floor.
+    ratios = [(m - 1.0) / (f - 1) for f, m in mults if f > 1]
+    check(max(ratios) - min(ratios) < 1e-9,
+          f"linear in depth, ratio m/(f-1) constant "
+          f"({[round(r, 4) for r in ratios]})")
+
+    # The helper used by legacy call sites must agree with the world.
+    check(abs(calculate_monster_multiplier(7) - (1 + 0.10 * 6)) < 1e-9,
+          "calculate_monster_multiplier matches world.monster_multiplier")
+
+
 TESTS = [
     test_01_chunk_math,
     test_02_worldbuilder_dependency,
@@ -335,6 +445,8 @@ TESTS = [
     test_10_floor_tiering,
     test_11_save_load_roundtrip,
     test_12_autoplay_headless,
+    test_13_spawn_not_boxed_in,
+    test_14_difficulty_curve,
 ]
 
 if __name__ == "__main__":

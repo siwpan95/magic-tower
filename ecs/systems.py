@@ -98,7 +98,11 @@ class CombatSystem:
     @staticmethod
     def fight(world, tile: dict, mx: int, my: int):
         monster = tile["monster"]
-        is_boss = monster.get("is_boss", False)
+        # The boss room tags bosses as "isBoss"; some paths used "is_boss".
+        # Reading only one of them silently disabled every boss-specific
+        # branch below — including marking the boss defeated and spawning the
+        # stairs — so a boss floor could never be cleared.
+        is_boss = bool(monster.get("is_boss") or monster.get("isBoss"))
 
         prefix = "powerful " if is_boss else ""
         world.add_log(f"Encountered {prefix}{monster['name']}!", "combat")

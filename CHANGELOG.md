@@ -8,6 +8,98 @@
 
 ### Added
 
+- **地图打印（按 `P`）**：新增 `game/map_print.py`，把当前视野导出为
+  **ASCII（控制台）+ `.xlsx` + `.png`** 三件套，输出到 `output/`。
+  - `.xlsx` 采用 **`cordis-table-app` 的 Map 表格式**（一格一单元格、实色填充 = 地形），
+    因此可以直接交给该项目的渲染管线出图：
+    `node src/map_cli.mjs render --xlsx map.xlsx --sheet Map --out map.png --px 24 --grid`
+    （Cordis Node 宿主 → JSON-RPC stdio 桥 → Python/OpenPyXL → Pillow）。
+  - 检测不到 Node / cordis-table-app 时自动降级到 `render_png_local()`（同一调色板，
+    像素完全一致）。`CORDIS_TABLE_APP` 环境变量可指定该项目路径。
+  - 调色板前 11 个键沿用 cordis-table-app 的 ARGB（`stone/floor/door/stair/lava/…`），
+    仅新增 `player`、`void` 两个扩展键，`readMap` / `exportDonjon` 仍能读懂导出的表。
+  - **不修改世界状态**：未生成的区域导出为 `void`，不会触发惰性生成。
+- **怪物图鉴大幅扩充：4 → 40 种**（`tools/gen_bestiary.py`）。
+  - 数据来源为 `D:\projects\RolePlayer` 的 SRD 语料：`_srd_pull/monsters/*.json`
+    （334 只，含 CR/XP/HP/AC）取数值，`_cn_src/monsters_cn_2025.json` 取官方中文译名。
+  - 数值按 CR 线性映射（**经实跑重标定**）：`hp=30+55·cr`、`atk=8+9·cr`、`def=2+4·cr`、
+    `exp=12+55·cr`、`gold=5+16·cr`；原有 4 只（史莱姆/哥布林/骷髅兵/兽人）统一走曲线
+    （旧手调值已移除，消除离群点）。首版斜率（174/25/13）过陡：1 层怪防御即 ≥ 玩家攻击，
+    每刀固定 1 点伤害，挂机 120 步 0 击杀。
+  - 新增 `min_floor`（深度门，`1+int(cr·2.2)`，铺到 1~62 层）与 `cr` 两列，
+    `monsters` 表从 7 列扩展到 9 列；`data_loader` 按需读取（缺列时回退到旧的「取前 N 个」分档）。
+  - 梯度：1 层 6 种（巨鼠/狗头人/哥布林/巨蝙蝠/怯魔/闪现犬）→ 24 层解锁终局
+    （深狱炼魔、远古白龙）。
+- 新增 `tools/ui_playtest.py`：真实 Tk 窗口实跑脚本，用 `event_generate` 走真实
+  `<KeyPress>` → `_on_key` → `move_player` 路径（不直接改世界），撞墙自动换方向，
+  抓窗口截图并统计重绘耗时。
+- 新增 `MONSTER_DEPTH_BIAS`、`FLOOR_MONSTER_MULT`、`MAP_EXPORT_RADIUS`、
+  `MAP_EXPORT_PX` 四个常量（`config.py` 与 xlsx `constants` 表同步）。
+- 测试：`test_worldgen.py` 新增 `test_13_spawn_not_boxed_in`（出生点四向畅通）、
+  `test_14_difficulty_curve`（楼层倍率线性），共 61 条断言。
+
+### Changed
+
+- **难度曲线重做**：`monster_multiplier()` 由 `2**(floor-1)`（20 层 = 524288 倍）
+  改为线性 `1 + 0.10·(floor-1)`（20 层 = 2.9 倍）。原指数倍率与新增的 CR 梯度叠加，
+  造成 20 层平均怪血 ~9×10⁷、任何一局都会被秒；现在难度主要来自**物种随深度升级**
+  （1 层打狗头人、20 层打铁魔像），实测平均怪血 62 → 1096（约 18 倍），曲线平滑。
+- 同层内按深度偏移权重 `(hp/max_hp)² × floor × 4.0`，深层不再被弱怪淹没：
+  5 层主力变为狼人/石化蜥蜴，20 层变为铁魔像/六臂蛇魔。
+- `calculate_monster_multiplier()` 与 `monster_multiplier()` 统一（同一公式）；
+  状态栏倍数显示改为两位小数（`2.90x`）。
+- **UI 重绘重构**（手感修复）：canvas item 只创建一次并按外观分组批量 `itemconfigure`，
+  替换原先每帧 `delete("all")` + 4300 次 `create_*`；背包/日志面板加内容签名缓存。
+  实测完整 `_draw` 15.5 ms → 5.3 ms，单步移动 135 ms → ~22 ms（约 7 → 45 步/秒）。
+- `_cleanup_distant_tiles` 只在玩家位置变化时执行（之前在每次重绘都扫全表，
+  每帧解析 27 万次字符串坐标）。
+
+### Fixed
+
+- **出生点被三面墙围死**：BSP 的 L 形逃生走廊可能让块心只剩一个出口，开局即「关柜子」。
+  改为块心 3×3 强制凿空并纳入净空区（不刷怪），保证四向可走且第一步无伏击。
+- **实跑 UI 验证手感（`tools/ui_playtest.py`）**：真实 Tk 窗口 + `event_generate`
+  键盘事件端到端计时。实测单步帧耗时中位 8.3 ms（~120 fps）、p95 77 ms（跨相机死区的
+  整帧重绘）、脏格中位 2 格；自动战斗段 722 步 / 46 s 从 1 层打到 **29 层**，
+  122 击杀、1 个 Boss，全程存活，截图 35 张存于 `output/playtest/`。
+- **挂机 AI 自杀与卡死（本轮实跑暴露的三连坑，均有复现脚本佐证）**：
+  - 寻怪 BFS 默认 `avoid_monsters=False`，去「安全怪」的最短路会**穿过未评估的精英怪**：
+    bot 走到精英邻格后每回合重复撞它，满血 5 回合死亡（seed 7 / 5 层精英食人魔
+    210 HP / 39 ATK vs 120 HP / 24 ATK）。改为寻路全程 `avoid_monsters=True`，
+    目标格本身仍可达（目标判定先于怪物墙判定）。
+  - `_force_breakout` 不排除怪物格：卡死挣脱时会盲撞不安全的怪。改为只允许撞
+    `_fight_is_safe` 通过的怪。
+  - **BFS 首步振荡**：每 tick 只重算首步，相邻两格的首步互相矛盾时 bot 在两格间
+    永久往返（实测 5 层 5810 步卡死，楼梯就在 16 格外且唯一堵路的精英**可杀**）。
+    新增**路线承诺**（`_route`/`_bfs_path`/`_follow_route`）：一次规划整条路径并缓存，
+    被 divert（捡物/开打/换层）才重新规划。
+  - 下楼规划重写（`_stairs_move`）：遍历**所有**已知楼梯（原来只看最近的一个）；
+    穿怪路线检查**整条路径上第一只怪**是否可杀（原来只查第一步）；全部被不可战胜的怪
+    堵住时返回 None，让 bot 转去务农/捡装备/购物变强，而不是在门口空转。
+- **Boss 永不死亡**：`world.py` 写 `isBoss`、`ecs/systems.py` 读 `is_boss`，
+  击杀判定永不触发（Boss 层成死局）。改为双写 + 兼容读取。
+- **Boss 层每 chunk 重建竞技场**：新 Boss + 重置 `boss_defeated` + 传送玩家，
+  Boss 永远打不完。改为每层一座竞技场（`_boss_arena_floor` 守卫）。
+- **Boss 数值不可打**：旧模板 × 层倍率让 18 层 Boss 达 5400 HP / 162 DEF，
+  玩家每刀 1 点。改为从该层最强小怪推导（`BOSS_HP_MULT=1.3` / `BOSS_ATK_MULT=1.6` /
+  `BOSS_DEF_MULT=1.45`），实测 18 层 Boss 11 刀 / 失血 ~72%，真正可打。
+- **字形全不显示**：text item 创建时为 `state=tk.HIDDEN`，`_flush` 从未切回 `NORMAL`。
+- **点击移动方向永远错误**：`_on_click` 把屏幕格坐标当世界坐标相减，点任何位置都只
+  往上/左走；改用 `_view_bounds()` 换算。`_on_hover` 同样修复。
+- **相机死区**：视口不再每步严格居中（861 格全脏 → 11 fps），玩家离中心超过
+  `CAMERA_DEADZONE=4` 格才整体重居中，普通帧只重绘 2 格；矩形描边改 `width=0` +
+  64 条静态网格线（再省 ~20 ms/帧）。
+- `_print_map` 移除调试残留 `print(res["ascii"])`（日志面板已有输出）。
+- 无头模拟与 UI 行为对齐：`tools/balance_sim.py` 的 step 循环原来不调用
+  `ensure_visible_tiles_generated`（bot 被困在 20×20 出生块）、不用物品、不购物、
+ 击杀统计受 50 条日志上限影响——全部修正，并改为包一层 `add_log` 计数。
+ 修正后 4 个 seed × 6000 步全部无死亡、打到 232~234 层。
+- 新增 `tools/_probe_death.py` / `tools/_probe_stall.py`：死亡/卡死现场取证脚本
+  （死亡前 N 步全状态、楼梯逐条通路判定、路线决策复现）。
+- **地图字符不可见**：重构后地板/墙的字符与自身背景同色（深灰叠深灰），
+  整屏只剩玩家和实体可见。新增 `_fg_for()`，墙用 `#1a1a1a`、地板用 `#6f6f6f`。
+- `_flush` 批量配置：Tk 的 `itemconfigure` 只接受**单个** tag/id，空格拼接的 tag 串
+  会静默匹配不到任何 item；改用「临时组 tag + `withtag "a || b"` 并集」的形式。
 - 完整重写 `README.md`：项目简介、特性、快速开始（含打包）、操作说明、玩法系统、项目结构、数据表结构、测试与路线图。
 - `README.en.md` 由 Gitee 模板占位文本替换为真实英文说明（与中文版内容对齐）。
 - **引入 `worldbuilder` 依赖（PyPI 1.0.0，siwpan/procgen）重构地图生成**：

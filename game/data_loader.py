@@ -133,7 +133,7 @@ def _load_monsters(ws) -> list[dict]:
     for r in range(2, ws.max_row + 1):
         row = _row_to_dict(ws, r, headers)
         if row.get("char"):
-            monsters.append({
+            monster = {
                 "char": row["char"],
                 "name": row.get("name", ""),
                 "hp": int(row.get("hp", 0)),
@@ -141,7 +141,13 @@ def _load_monsters(ws) -> list[dict]:
                 "defense": int(row.get("defense", 0)),
                 "exp": int(row.get("exp", 0)),
                 "gold": int(row.get("gold", 0)),
-            })
+            }
+            # Optional SRD-derived tiering columns (see tools/gen_bestiary.py).
+            if row.get("min_floor") not in (None, ""):
+                monster["min_floor"] = int(row["min_floor"])
+            if row.get("cr") not in (None, ""):
+                monster["cr"] = float(row["cr"])
+            monsters.append(monster)
     return monsters
 
 

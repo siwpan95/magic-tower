@@ -26,3 +26,6 @@ dist/
 # Python virtual environment
 .venv/
 venv/
+
+# Runtime output (map prints, playtest screenshots)
+output/
