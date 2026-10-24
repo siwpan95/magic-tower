@@ -15,7 +15,8 @@
 - **无限楼层（分块地牢）**：地图按 20×20 分块（`CHUNK_SIZE`，原点 (0,0) 为块 (0,0) 中心），每块用
   [worldbuilder](https://gitee.com/siwpan/procgen) 的 **BSP 算法**生成「房间 + 走廊」并保证连通；
   四边中点开口互接相邻块，块中心必定连通（玩家出生点永不被封死）；每块在离块心最远的房间里
-  放一个下楼楼梯。地块按需生成、远处自动回收（`CLEANUP_RADIUS=30`）；楼层越高怪物属性按 `2^(楼层-1)` 翻倍。
+  放一个下楼楼梯。地块按需生成、远处自动回收（`CLEANUP_RADIUS=30`）；难度来自**物种随深度升级**
+  （40 种怪物按 `min_floor` 深度门解锁，F45 封顶）+ 轻度层倍率 `1 + 0.10·(楼层-1)`（`FLOOR_MONSTER_MULT`）。
 - **精英怪物**：3 层起每块约 8% 概率刷出精英——`worldbuilder.NameGenerator` 生成称号
   （如 `Orc「Zyorzyavyn」`），全属性 ×1.5、经验金币翻倍，字符大写以示区分。
 - **完整养成线**：战斗 → 经验/金币 → 升级（+10 最大 HP / +2 攻 / +1 防 / +1 技能点）→ 三选一技能 → Buff → 商店消费。
@@ -99,8 +100,8 @@ pyinstaller --onefile --name magic-tower-dbg main.py           # 调试版（保
 
 | 类别 | 内容 |
 | --- | --- |
-| 怪物 | Slime(30/8/2)、Goblin(60/14/5)、Skeleton(100/22/10)、Orc(180/35/18) |
-| Boss | Demon Lord（2000 HP / 120 攻 / 60 防） |
+| 怪物 | **40 种模板**（SRD 取值按 CR 线性映射）：1 层史莱姆 37/9/2 → 45 层深狱炼魔 1130/188/82 |
+| Boss | 由**当层最强小怪**推导（HP×1.3 / 攻×1.6 / 防×1.45）并带随机称号；模板值 2000/120/60 仅作数据池为空时的回退 |
 | 道具 | Health Potion(+30)、Weapon(攻+10)、Armor(防+8)、Key、Gem(金+50) |
 | 初始属性 | HP 100 / 攻 10 / 防 5 |
 | 升级经验 | `exp_to_next = 100 × 等级^1.5` |
@@ -166,6 +167,11 @@ python test_excel_loader.py    # 校验 Excel 数据加载结果
 python test_integration.py     # 校验模块导入与核心逻辑
 python test_worldgen.py        # 校验程序化生成（确定性/连通性/掉落/精英/不覆盖/挂机回归）
 ```
+
+> **环境要求**：测试依赖 `requirements.txt` 的全部包（`worldbuilder`、`openpyxl`、`Pillow`…），
+> 必须用**装齐依赖的解释器**运行——若解释器缺少 `worldbuilder`，`test_worldgen.py` 会因
+> `ModuleNotFoundError` 整体失败（表现为「一跑就全挂」，并非代码回归）。
+> 本机开发环境为 `E:\Python314`。
 
 ---
 

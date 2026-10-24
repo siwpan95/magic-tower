@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-24
+
 ### Added
 
 - **地图打印（按 `P`）**：新增 `game/map_print.py`，把当前视野导出为
@@ -24,28 +26,39 @@
     （334 只，含 CR/XP/HP/AC）取数值，`_cn_src/monsters_cn_2025.json` 取官方中文译名。
   - 数值按 CR 线性映射（**经实跑重标定**）：`hp=30+55·cr`、`atk=8+9·cr`、`def=2+4·cr`、
     `exp=12+55·cr`、`gold=5+16·cr`；原有 4 只（史莱姆/哥布林/骷髅兵/兽人）统一走曲线
-    （旧手调值已移除，消除离群点）。首版斜率（174/25/13）过陡：1 层怪防御即 ≥ 玩家攻击，
-    每刀固定 1 点伤害，挂机 120 步 0 击杀。
-  - 新增 `min_floor`（深度门，`1+int(cr·2.2)`，铺到 1~62 层）与 `cr` 两列，
-    `monsters` 表从 7 列扩展到 9 列；`data_loader` 按需读取（缺列时回退到旧的「取前 N 个」分档）。
-  - 梯度：1 层 6 种（巨鼠/狗头人/哥布林/巨蝙蝠/怯魔/闪现犬）→ 24 层解锁终局
-    （深狱炼魔、远古白龙）。
+    （旧手调值已移除，消除离群点）。首版斜率（174/25/13）过陡且无深度门，任意层都能刷出
+    高阶种：1 层怪防御即 ≥ 玩家攻击，每刀固定 1 点伤害，挂机 120 步 0 击杀。
+  - 新增 `min_floor`（深度门，`1+int(cr·2.2)`，12 档铺到 1~45 层：
+    1/2/3/5/7/9/12/14/18/23/36/45）与 `cr` 两列，`monsters` 表从 7 列扩展到 9 列；
+    `data_loader` 按需读取（缺列时回退到旧的「取前 N 个」分档）。
+  - 梯度：1 层 7 种（史莱姆/巨鼠/狗头人/哥布林/巨蝙蝠/怯魔/闪现犬，最强哥布林 44/10/3）
+    → 45 层解锁终局（深狱炼魔、远古白龙，1130/188/82）。
 - 新增 `tools/ui_playtest.py`：真实 Tk 窗口实跑脚本，用 `event_generate` 走真实
   `<KeyPress>` → `_on_key` → `move_player` 路径（不直接改世界），撞墙自动换方向，
   抓窗口截图并统计重绘耗时。
+- 新增 `tools/depth_audit.py`（**深层平推审计**）：复用 `balance_sim` 的无头模拟
+  （真实 GameWorld + 真实 AutoPlayer），按深度采样「实测玩家战力 × 当层最强解锁模板」
+  的对决数据（战比 = 它刀数 / 你刀数）。4 seed × 6000 步实测：
+  - 怪物封顶点 **F45**（深狱炼魔/远古白龙 1130/188/82），此后遭遇面冻结在顶层种 + 精英；
+  - **F46 起进入碾压区**（战比 ≥ 8，F46 即 83x）；F6 起战比 ≥ 65x；
+    精英（×1.5）战比全程 ≥ 6.3x，深层不构成威胁；
+  - F106 起玩家 DEF（1007）超过顶层种 ATK（188），每刀受 1 点固定伤害且一刀秒杀；
+  - 玩家战力（ATK+DEF）斜率：封顶前 21.1/层、封顶后 17.8/层，成长未随怪物封顶停摆；
+  - 4 seed 到达 F232/233/233/234（中位 233），深层平均 21 步/层、3 击杀/层。
 - 新增 `MONSTER_DEPTH_BIAS`、`FLOOR_MONSTER_MULT`、`MAP_EXPORT_RADIUS`、
   `MAP_EXPORT_PX` 四个常量（`config.py` 与 xlsx `constants` 表同步）。
-- 测试：`test_worldgen.py` 新增 `test_13_spawn_not_boxed_in`（出生点四向畅通）、
-  `test_14_difficulty_curve`（楼层倍率线性），共 61 条断言。
+- 测试：`test_worldgen.py` 从 12 组扩至 14 组（新增 `test_13_spawn_not_boxed_in`
+  出生点四向畅通、`test_14_difficulty_curve` 楼层倍率线性），共 61 条断言。
 
 ### Changed
 
 - **难度曲线重做**：`monster_multiplier()` 由 `2**(floor-1)`（20 层 = 524288 倍）
   改为线性 `1 + 0.10·(floor-1)`（20 层 = 2.9 倍）。原指数倍率与新增的 CR 梯度叠加，
   造成 20 层平均怪血 ~9×10⁷、任何一局都会被秒；现在难度主要来自**物种随深度升级**
-  （1 层打狗头人、20 层打铁魔像），实测平均怪血 62 → 1096（约 18 倍），曲线平滑。
+  （1 层打哥布林 44/10/3、20 层打多头蛇 470/80/34、45 层打深狱炼魔 1130/188/82），
+  按生成权重表计算的期望平均怪血 F1 41 → F20 125 → F45 180，曲线平滑。
 - 同层内按深度偏移权重 `(hp/max_hp)² × floor × 4.0`，深层不再被弱怪淹没：
-  5 层主力变为狼人/石化蜥蜴，20 层变为铁魔像/六臂蛇魔。
+  5 层主力变为兽人（140/26/10），20 层变为多头蛇（470/80/34）。
 - `calculate_monster_multiplier()` 与 `monster_multiplier()` 统一（同一公式）；
   状态栏倍数显示改为两位小数（`2.90x`）。
 - **UI 重绘重构**（手感修复）：canvas item 只创建一次并按外观分组批量 `itemconfigure`，
@@ -53,6 +66,12 @@
   实测完整 `_draw` 15.5 ms → 5.3 ms，单步移动 135 ms → ~22 ms（约 7 → 45 步/秒）。
 - `_cleanup_distant_tiles` 只在玩家位置变化时执行（之前在每次重绘都扫全表，
   每帧解析 27 万次字符串坐标）。
+- `CLEANUP_RADIUS` 15 → 30（≥ 块尺寸 + 屏幕半宽，避免同屏地块被回收后每帧重建）。
+- `game/world.py`：删除逐格噪声生成 `_generate_tile` 与 `random.choice` 抽样，
+  改为经 `WorldGenerator` 按块惰性生成；存档格式不变（旧存档可读，新区块按新算法生成）。
+- `requirements.txt` 增加 `worldbuilder>=1.0.0`。
+- 完整重写 `README.md`：项目简介、特性、快速开始（含打包）、操作说明、玩法系统、项目结构、数据表结构、测试与路线图。
+- `README.en.md` 由 Gitee 模板占位文本替换为真实英文说明（与中文版内容对齐）。
 
 ### Fixed
 
@@ -76,6 +95,8 @@
   - 下楼规划重写（`_stairs_move`）：遍历**所有**已知楼梯（原来只看最近的一个）；
     穿怪路线检查**整条路径上第一只怪**是否可杀（原来只查第一步）；全部被不可战胜的怪
     堵住时返回 None，让 bot 转去务农/捡装备/购物变强，而不是在门口空转。
+  - 新增 `tools/_probe_death.py` / `tools/_probe_stall.py`：死亡/卡死现场取证脚本
+    （死亡前 N 步全状态、楼梯逐条通路判定、路线决策复现）。
 - **Boss 永不死亡**：`world.py` 写 `isBoss`、`ecs/systems.py` 读 `is_boss`，
   击杀判定永不触发（Boss 层成死局）。改为双写 + 兼容读取。
 - **Boss 层每 chunk 重建竞技场**：新 Boss + 重置 `boss_defeated` + 传送玩家，
@@ -92,16 +113,12 @@
 - `_print_map` 移除调试残留 `print(res["ascii"])`（日志面板已有输出）。
 - 无头模拟与 UI 行为对齐：`tools/balance_sim.py` 的 step 循环原来不调用
   `ensure_visible_tiles_generated`（bot 被困在 20×20 出生块）、不用物品、不购物、
- 击杀统计受 50 条日志上限影响——全部修正，并改为包一层 `add_log` 计数。
- 修正后 4 个 seed × 6000 步全部无死亡、打到 232~234 层。
-- 新增 `tools/_probe_death.py` / `tools/_probe_stall.py`：死亡/卡死现场取证脚本
-  （死亡前 N 步全状态、楼梯逐条通路判定、路线决策复现）。
+  击杀统计受 50 条日志上限影响——全部修正，并改为包一层 `add_log` 计数。
+  修正后 4 个 seed × 6000 步全部无死亡、打到 232~234 层。
 - **地图字符不可见**：重构后地板/墙的字符与自身背景同色（深灰叠深灰），
   整屏只剩玩家和实体可见。新增 `_fg_for()`，墙用 `#1a1a1a`、地板用 `#6f6f6f`。
 - `_flush` 批量配置：Tk 的 `itemconfigure` 只接受**单个** tag/id，空格拼接的 tag 串
   会静默匹配不到任何 item；改用「临时组 tag + `withtag "a || b"` 并集」的形式。
-- 完整重写 `README.md`：项目简介、特性、快速开始（含打包）、操作说明、玩法系统、项目结构、数据表结构、测试与路线图。
-- `README.en.md` 由 Gitee 模板占位文本替换为真实英文说明（与中文版内容对齐）。
 - **引入 `worldbuilder` 依赖（PyPI 1.0.0，siwpan/procgen）重构地图生成**：
   - 新增 `game/worldgen.py` 适配层：普通层改为**分块 BSP 地牢**（`CHUNK_SIZE=20`，原点居中），
     房间 + 走廊由 `worldbuilder.generate_dungeon_bsp` 生成；四边中点开口互接相邻块，
@@ -112,20 +129,10 @@
     （如 `Orc「Zyorzyavyn」`），全属性 ×1.5、经验金币翻倍、字符大写；Boss 亦获得随机称号。
   - `data/game_data.xlsx` constants 表同步新增 `CHUNK_SIZE` / `ELITE_MIN_FLOOR` /
     `ELITE_CHANCE` / `ELITE_STAT_MULT` / `NAME_STYLE`，移除 `GEN_CHANCE_STAIRS`。
-- 新增 `test_worldgen.py`（12 组用例）：分块坐标数学、依赖可用性、生成确定性、
-  块内/跨块连通性（BFS）、每块单楼梯、加权表产物校验、精英规则、**不覆盖语义**、
-  Boss 称号、楼层怪物分档、存读档往返、挂机 AI 无头回归。
-- `.gitignore` 补充 `.venv/`、`venv/`（此前虚拟环境会被误提交）。
-
-### Changed
-
-- `CLEANUP_RADIUS` 15 → 30（≥ 块尺寸 + 屏幕半宽，避免同屏地块被回收后每帧重建）。
-- `game/world.py`：删除逐格噪声生成 `_generate_tile` 与 `random.choice` 抽样，
-  改为经 `WorldGenerator` 按块惰性生成；存档格式不变（旧存档可读，新区块按新算法生成）。
-- `requirements.txt` 增加 `worldbuilder>=1.0.0`。
-
-### Fixed
-
+  - 新增 `test_worldgen.py`（12 组用例）：分块坐标数学、依赖可用性、生成确定性、
+    块内/跨块连通性（BFS）、每块单楼梯、加权表产物校验、精英规则、**不覆盖语义**、
+    Boss 称号、楼层怪物分档、存读档往返、挂机 AI 无头回归。
+  - `.gitignore` 补充 `.venv/`、`venv/`（此前虚拟环境会被误提交）。
 - 打包章节不再引用仓库内不存在的 `*.spec`（该文件含本机绝对路径，从未入库且被 `.gitignore` 忽略），
   改为给出等价的 `pyinstaller` 命令行与 `pyi-makespec` 生成方式。
 - 修复挂机 AI `_explore_or_seek` 的 `UnboundLocalError`：HP ≤ 65% 时 `monster_targets`
@@ -134,6 +141,11 @@
   （与 `_scan_safe_monster` 同口径，阈值 35% 当前 HP），寻怪/相邻接战/绝望走位均改为
   风险感知；`_any_valid_move` 不再优先踩怪。
 - 无头挂机模拟（8 轮 × 8000 步）：修复前 30 步内必死/必崩，修复后 5 轮存活打到 16 楼。
+- **README 测试章节补环境要求 + 过期数值校正**：测试必须用**装齐 `requirements.txt`
+  的解释器**运行（缺 `worldbuilder` 时 `test_worldgen.py` 因 `ModuleNotFoundError`
+  整体失败，表现为「一跑就全挂」而非代码回归；本机开发环境 `E:\Python314`）；
+  修正两处过期描述——楼层倍率 `2^(楼层-1)` → 线性 `1 + 0.10·(楼层-1)`，
+  默认数值表改为 40 模板 + Boss 由当层最强小怪推导（模板值仅作空池回退）。
 
 ## [1.0.0] - 2026-08-27
 
