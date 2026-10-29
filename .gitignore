@@ -22,3 +22,10 @@ __pycache__/
 build/
 dist/
 *.spec
+
+# Python virtual environment
+.venv/
+venv/
+
+# Runtime output (map prints, playtest screenshots)
+output/

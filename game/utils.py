@@ -6,9 +6,14 @@ import math
 import copy
 
 
-def calculate_monster_multiplier(floor: int) -> int:
-    """Monster stats double each floor."""
-    return 2 ** (floor - 1)
+def calculate_monster_multiplier(floor: int, per_floor: float = 0.10) -> float:
+    """Per-floor stat multiplier (linear).
+
+    Historically ``2 ** (floor - 1)`` (floor 20 => 524288x).  Difficulty now
+    comes mostly from the depth-gated bestiary (see tools/gen_bestiary.py), so
+    this only needs a gentle nudge.
+    """
+    return 1.0 + per_floor * (floor - 1)
 
 
 def calculate_exp_to_next(level: int, exp_base: int = 100) -> int:

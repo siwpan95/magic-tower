@@ -27,6 +27,15 @@ class AutoPlayer:
         self._pos_history: deque[tuple[int, int]] = deque(maxlen=30)
         self._stuck_frames: int = 0
         self._last_direction: Optional[tuple[int, int]] = None
+        self._engaged: Optional[tuple[int, int]] = None   # tile we are fighting
+        # Committed walk route (tiles ahead of the player, target included).
+        # Re-deriving only the *first step* every tick makes adjacent tiles
+        # whose BFS first steps contradict each other oscillate forever
+        # (measured: floor 5, 5810 steps pacing inside a 4-tile corridor
+        # ring while the stairs sat 16 tiles away behind a beatable elite).
+        # A whole-path commitment walks monotonically instead.
+        self._route: Optional[list[tuple[int, int]]] = None
+        self._route_floor: Optional[int] = None
 
     # ---- Public API ----
 
@@ -36,6 +45,31 @@ class AutoPlayer:
         self._tick += 1
         px, py = self.world.get_player_position()
         self._pos_history.append((px, py))
+
+        # ---- Finish a fight we already started ----
+        # A boss exchange takes ~11 turns and does not move the player, which
+        # tripped the loop/lock detector below: after 5 identical positions it
+        # forced a breakout and the bot walked away from a half-dead boss
+        # (measured: the floor-18 boss never died across 4000 steps).  This
+        # check runs *before* the stuck logic so standing still — mid-fight —
+        # is not mistaken for being stuck, and it keeps swinging while the
+        # remaining exchange is still survivable.
+        if self._engaged:
+            tx, ty = self._engaged
+            tile = self.world.get_tile(tx, ty)
+            monster = tile.get("monster") if tile else None
+            if monster is None:
+                self._engaged = None
+            else:
+                move = (tx - px, ty - py)
+                if max(abs(move[0]), abs(move[1])) == 1:
+                    m_dmg = max(1, monster["attack"] - self.world.player_data["defense"])
+                    turns_left = ((monster["current_hp"] + max(1, self.world.player_data["attack"] - monster["defense"]) - 1)
+                                  // max(1, self.world.player_data["attack"] - monster["defense"]))
+                    if m_dmg * turns_left < self.world.player_data["hp"]:
+                        self._last_direction = move
+                        return move
+                self._engaged = None
 
         # ---- Loop detection ----
         if self._is_looping():
@@ -79,6 +113,7 @@ class AutoPlayer:
 
         # Low HP -> retreat to stairs if known
         if hp_ratio < 0.2:
+            self._route = None      # a retreat overrides any committed walk
             stairs = self._find_nearest_stairs(px, py)
             if stairs:
                 path = self._bfs_step(px, py, stairs[0], stairs[1], avoid_monsters=True)
@@ -86,14 +121,18 @@ class AutoPlayer:
                     self._last_direction = path
                     return path
 
+        # ---- Follow a committed route before planning a new one ----
+        move = self._follow_route(px, py)
+        if move:
+            self._last_direction = move
+            return move
+
         # Floor sufficiently explored -> take stairs
         if explore_ratio > 0.6:
-            stairs = self._find_nearest_stairs(px, py)
-            if stairs:
-                path = self._bfs_step(px, py, stairs[0], stairs[1], avoid_monsters=True)
-                if path and not self._tile_has_monster(px + path[0], py + path[1]):
-                    self._last_direction = path
-                    return path
+            move = self._stairs_move(px, py)
+            if move:
+                self._last_direction = move
+                return move
 
         # Adjacent stairs as last resort before exploring
         move = self._scan_adjacent(px, py, "stairs")
@@ -107,11 +146,15 @@ class AutoPlayer:
             self._last_direction = move
             return move
 
-        # ---- Phase 4: fight anything if healthy ----
-        move = self._scan_adjacent(px, py, "monster")
-        if move and hp_ratio > 0.25:
-            self._last_direction = move
-            return move
+        # ---- Phase 4: fight an adjacent monster only if the whole
+        #      exchange is safe (same risk model as _scan_safe_monster) ----
+        for dx, dy in DIRS:
+            tile = self.world.get_tile(px + dx, py + dy)
+            if tile and tile.get("monster") and self._fight_is_safe(
+                    tile["monster"]):
+                self._engaged = (px + dx, py + dy)
+                self._last_direction = (dx, dy)
+                return (dx, dy)
 
         # ---- Fallback: any valid move ----
         move = self._any_valid_move(px, py)
@@ -120,6 +163,38 @@ class AutoPlayer:
             return move
 
         return None
+
+    def _fight_is_safe(self, monster: dict) -> bool:
+        """Whole-fight risk model: expected damage over the full exchange
+        must stay below 35% of current HP (mirrors _scan_safe_monster)."""
+        pd = self.world.player_data
+        hp_ratio = pd["hp"] / max(pd["max_hp"], 1)
+        if hp_ratio < 0.15:
+            return False
+        m_dmg = max(1, monster["attack"] - pd["defense"])
+        for b in self.world.active_buffs:
+            if b["effects"].get("defense_multiplier"):
+                m_dmg = max(1, int(m_dmg / b["effects"]["defense_multiplier"]))
+        dr = pd.get("dmg_reduction", 0) or 0
+        if dr:
+            m_dmg = max(1, m_dmg - dr)
+        p_dmg = max(1, pd["attack"] - monster["defense"])
+        for b in self.world.active_buffs:
+            if b["effects"].get("attack_multiplier"):
+                p_dmg = int(p_dmg * b["effects"]["attack_multiplier"])
+        turns_to_kill = (monster["current_hp"] + p_dmg - 1) // p_dmg
+        expected_dmg = m_dmg * max(0, turns_to_kill - 1)
+
+        # Winning the damage race from (near) full health is worth taking even
+        # when it costs more than the 35 % comfort budget.  A boss floor is a
+        # hard gate and a boss exchange costs ~70 % HP, so the earlier rule
+        # made idle play stall forever in front of the boss instead of
+        # fighting it.
+        turns_to_die = (pd["hp"] + m_dmg - 1) // m_dmg
+        if turns_to_kill < turns_to_die and hp_ratio >= 0.8:
+            return True
+
+        return expected_dmg <= pd["hp"] * 0.35
 
     def auto_learn_skill(self, available_skills: list[dict]) -> Optional[dict]:
         """Adaptive skill selection based on current battle state."""
@@ -217,34 +292,20 @@ class AutoPlayer:
         return None
 
     def _scan_safe_monster(self, x: int, y: int) -> Optional[tuple[int, int]]:
-        """Only engage if expected HP loss is acceptable."""
-        pd = self.world.player_data
+        """Only engage if the exchange is worth it.
+
+        Delegates to ``_fight_is_safe`` — this used to carry a second,
+        hand-copied copy of the risk model (a flat 30 % HP budget), and the
+        two drifted apart: a boss that ``_fight_is_safe`` accepted was still
+        rejected here, so idle play stood next to the boss forever instead of
+        fighting it.  One risk model, one place.
+        """
         for dx, dy in DIRS:
             tile = self.world.get_tile(x + dx, y + dy)
             if not tile or not tile.get("monster"):
                 continue
-            m = tile["monster"]
-            m_dmg = max(1, m["attack"] - pd["defense"])
-            # Apply defence buffs
-            for b in self.world.active_buffs:
-                if b["effects"].get("defense_multiplier"):
-                    m_dmg = max(1, int(m_dmg / b["effects"]["defense_multiplier"]))
-            dr = pd.get("dmg_reduction", 0) or 0
-            if dr:
-                m_dmg = max(1, m_dmg - dr)
-
-            m_hp = m["current_hp"]
-            p_dmg = max(1, pd["attack"] - m["defense"])
-            for b in self.world.active_buffs:
-                if b["effects"].get("attack_multiplier"):
-                    p_dmg = int(p_dmg * b["effects"]["attack_multiplier"])
-
-            turns_to_kill = (m_hp + p_dmg - 1) // p_dmg
-            expected_dmg = m_dmg * max(0, turns_to_kill - 1)
-
-            hp_ratio = pd["hp"] / max(pd["max_hp"], 1)
-            # Engage if we survive at least 3 such fights
-            if expected_dmg < pd["hp"] * 0.3 and hp_ratio > 0.15:
+            if self._fight_is_safe(tile["monster"]):
+                self._engaged = (x + dx, y + dy)
                 return (dx, dy)
         return None
 
@@ -265,10 +326,11 @@ class AutoPlayer:
         """Intelligently choose: explore unknown, seek monster for exp, or seek item."""
 
         # ---- Farming mode: if HP high, actively seek safe monsters ----
+        monster_targets: list = []
         if hp_ratio > 0.65:
             monster_targets = self._find_visible_monsters(px, py)
             for tx, ty in monster_targets:
-                move = self._bfs_step(px, py, tx, ty)
+                move = self._seek(tx, ty)
                 if move:
                     return move
 
@@ -276,30 +338,50 @@ class AutoPlayer:
         if not monster_targets:  # only if not already found above
             monster_targets = self._find_visible_monsters(px, py)
         for tx, ty in monster_targets:
-            move = self._bfs_step(px, py, tx, ty)
+            # avoid_monsters=True: the *target* is a fight we already vetted,
+            # but the route there must not cross an unvetted monster tile.
+            # With the default False the BFS happily routed the first step
+            # through an elite Ogre (210 HP / 39 ATK) on the way to a rat,
+            # and the bot suicided into it turn after turn (measured: seed 7,
+            # floor 5 — full HP to dead in five exchanges).
+            move = self._seek(tx, ty)
             if move:
                 return move
 
         # ---- Seek visible items (avoid walking through monsters) ----
         item_target = self._find_visible_item(px, py)
         if item_target:
-            move = self._bfs_step(px, py, *item_target, avoid_monsters=True)
+            move = self._seek(item_target[0], item_target[1])
             if move:
                 return move
 
         # ---- Explore unknown edges (avoid walking through monsters) ----
         explore = self._find_explore_frontier(px, py)
         if explore:
-            move = self._bfs_step(px, py, *explore, avoid_monsters=True)
+            move = self._seek(explore[0], explore[1])
             if move:
                 return move
 
         return None
 
+    def _seek(self, tx: int, ty: int) -> Optional[tuple[int, int]]:
+        """Commit to a monster-avoiding route toward (tx, ty) and step."""
+        px, py = self.world.get_player_position()
+        path = self._bfs_path(px, py, tx, ty, avoid_monsters=True)
+        if not path:
+            return None
+        self._set_route(path)
+        return self._follow_route(px, py)
+
     def _find_visible_monsters(
         self, px: int, py: int, radius: int = 10
     ) -> list[tuple[int, int]]:
-        """Return positions of visible monsters sorted by distance."""
+        """Return positions of visible monsters sorted by distance.
+
+        A monster is only worth seeking when the WHOLE fight is safe:
+        expected damage over the full exchange must stay below 35% of
+        current HP (same risk model as ``_scan_safe_monster``).
+        """
         result = []
         pd = self.world.player_data
         for dy in range(-radius, radius + 1):
@@ -314,9 +396,8 @@ class AutoPlayer:
                 # Quick safety: skip if boss and we're too hurt
                 if m.get("isBoss") and pd["hp"] / max(pd["max_hp"], 1) < 0.5:
                     continue
-                # Skip if monster is too dangerous
-                m_dmg = max(1, m["attack"] - pd["defense"])
-                if m_dmg > pd["hp"] * 0.4:
+                # Whole-fight risk model
+                if not self._fight_is_safe(m):
                     continue
                 dist = abs(dx) + abs(dy)
                 result.append((tx, ty, dist))
@@ -395,6 +476,111 @@ class AutoPlayer:
                     best_dist, best = dist, (tx, ty, dist)
         return best
 
+    def _stairs_move(self, px: int, py: int) -> Optional[tuple[int, int]]:
+        """Best stairs action right now, or None when every route is blocked.
+
+        Nearest stairs first.  A route that walks *around* every monster is
+        always preferred.  A route that must cross a monster tile is only
+        taken when the fight it commits to is survivable — and the vetting
+        looks at the FIRST MONSTER ON THE WHOLE PATH, not just the first
+        step: the blocker usually sits several tiles ahead, and checking
+        only the first step let the bot stroll into an elite's face, refuse
+        the fight, stroll back, and repeat forever (measured: floor 5,
+        5810 steps without descending, 1 kill — the floor had weapons,
+        armor and merchants the bot never went for).
+
+        When every known stairs sits behind an unbeatable monster this
+        returns None, so the caller falls through to farming and loot: the
+        bot goes and gets stronger instead of pacing at the door.  Once it
+        can win the exchange, the same route opens up by itself.
+        """
+        stairs = []
+        for tile in self.world.map_data.values():
+            if tile.get("stairs"):
+                tx, ty = tile["x"], tile["y"]
+                if (tx, ty) != (px, py):
+                    stairs.append((abs(tx - px) + abs(ty - py), tx, ty))
+        stairs.sort()
+
+        for _, sx, sy in stairs:
+            # Preferred: a route that never touches a monster tile.
+            path = self._bfs_path(px, py, sx, sy, avoid_monsters=True)
+            if path:
+                self._set_route(path)
+                return self._follow_route(px, py)
+            # Blocked: only fight through a monster we can actually beat.
+            path = self._bfs_path(px, py, sx, sy, avoid_monsters=False)
+            if not path:
+                continue
+            blocker = self._path_first_monster(px, py, sx, sy)
+            if blocker is None:
+                self._set_route(path)
+                return self._follow_route(px, py)
+            bx, by = blocker
+            tile = self.world.get_tile(bx, by)
+            if (tile and tile.get("monster")
+                    and self._fight_is_safe(tile["monster"])):
+                self._set_route(path)
+                return self._follow_route(px, py)
+        return None
+
+    # ---- route commitment ----
+
+    def _set_route(self, path: list[tuple[int, int]]):
+        """Commit to a walk route: ``path`` lists the tiles ahead of the
+        player, target included (output of :meth:`_bfs_path`)."""
+        self._route = list(path)
+        self._route_floor = self.world.current_floor
+
+    def _follow_route(self, px: int, py: int) -> Optional[tuple[int, int]]:
+        """Next step along the committed route, or None when it is stale.
+
+        Stale means: floor changed, the player was diverted off the route
+        (item pickup, a fight), the route is exhausted, or the next tile is
+        no longer walkable.  A monster on the next tile invalidates the
+        route — the safety-scanned phases that run before this one already
+        had their chance to engage it, so refusing here re-plans around it.
+        """
+        route = self._route
+        if not route or self._route_floor != self.world.current_floor:
+            self._route = None
+            return None
+        # Tiles the player has already walked onto.
+        while route and route[0] == (px, py):
+            route.pop(0)
+        if not route:
+            self._route = None
+            return None
+        nx, ny = route[0]
+        if max(abs(nx - px), abs(ny - py)) != 1:
+            # Diverted off-route: drop the commitment and re-plan.
+            self._route = None
+            return None
+        tile = self.world.get_tile(nx, ny)
+        if not tile or tile.get("type") == "wall" or tile.get("monster"):
+            self._route = None
+            return None
+        return (nx - px, ny - py)
+
+    def _path_first_monster(
+        self, sx: int, sy: int, tx: int, ty: int
+    ) -> Optional[tuple[int, int]]:
+        """First monster tile on the shortest walkable path, or None.
+
+        Monster tiles are passable here (this answers "what would we bump
+        into on the way?"), so the reported tile is the fight a through-
+        route actually commits to — which may be several tiles ahead of
+        the first step.
+        """
+        path = self._bfs_path(sx, sy, tx, ty, avoid_monsters=False)
+        if not path:
+            return None
+        for x, y in path:
+            tile = self.world.get_tile(x, y)
+            if tile and tile.get("monster"):
+                return (x, y)
+        return None
+
     def _bfs_step(
         self, sx: int, sy: int, tx: int, ty: int,
         max_depth: int = 50, avoid_monsters: bool = False,
@@ -432,6 +618,47 @@ class AutoPlayer:
 
         return None
 
+    def _bfs_path(
+        self, sx: int, sy: int, tx: int, ty: int,
+        max_depth: int = 80, avoid_monsters: bool = False,
+    ) -> Optional[list[tuple[int, int]]]:
+        """Full walkable path as the list of tiles AFTER the start, target
+        included; None when unreachable.  Same traversal rules as
+        ``_bfs_step`` — the whole path is what route commitment needs,
+        because re-deriving only the first step each tick lets adjacent
+        tiles with contradictory first steps oscillate forever."""
+        if sx == tx and sy == ty:
+            return None
+
+        prev: dict[tuple[int, int], Optional[tuple[int, int]]] = {(sx, sy): None}
+        queue: deque = deque([(sx, sy, 0)])
+
+        while queue:
+            cx, cy, depth = queue.popleft()
+            if depth >= max_depth:
+                continue
+            for dx, dy in DIRS:
+                nx, ny = cx + dx, cy + dy
+                if (nx, ny) in prev:
+                    continue
+                if nx == tx and ny == ty:
+                    path = [(tx, ty)]
+                    cur: Optional[tuple[int, int]] = (cx, cy)
+                    while cur is not None:
+                        path.append(cur)
+                        cur = prev[cur]
+                    path.reverse()
+                    return path[1:]
+                tile = self.world.get_tile(nx, ny)
+                if not tile or tile.get("type") == "wall":
+                    continue
+                if avoid_monsters and tile.get("monster"):
+                    continue
+                prev[(nx, ny)] = (cx, cy)
+                queue.append((nx, ny, depth + 1))
+
+        return None
+
     # ---- Stuck detection ----
 
     def _is_looping(self) -> bool:
@@ -457,14 +684,20 @@ class AutoPlayer:
         valid: list[tuple[int, int]] = []
         for dx, dy in DIRS:
             tile = self.world.get_tile(px + dx, py + dy)
-            if tile and tile.get("type") != "wall":
-                # Prefer directions that lead to tiles we haven't visited recently
-                nx, ny = px + dx, py + dy
-                is_new = all(
-                    (nx, ny) != (hx, hy)
-                    for hx, hy in list(self._pos_history)[-10:]
-                )
-                valid.append((dx, dy, is_new))
+            if not tile or tile.get("type") == "wall":
+                continue
+            # Never break *into* a fight we cannot win: breakout fires
+            # before the safety-scanned phases, so an unvetted monster tile
+            # here is a blind step into a lethal exchange.
+            if tile.get("monster") and not self._fight_is_safe(tile["monster"]):
+                continue
+            # Prefer directions that lead to tiles we haven't visited recently
+            nx, ny = px + dx, py + dy
+            is_new = all(
+                (nx, ny) != (hx, hy)
+                for hx, hy in list(self._pos_history)[-10:]
+            )
+            valid.append((dx, dy, is_new))
 
         if not valid:
             return None
@@ -479,23 +712,40 @@ class AutoPlayer:
     # ---- Simple fallback: any valid direction ----
 
     def _any_valid_move(self, px: int, py: int) -> Optional[tuple[int, int]]:
-        """Pick any valid adjacent move. No bias — just don't go back into a wall."""
+        """Pick any valid adjacent move. No bias — just don't go back into a wall.
+
+        Monster tiles are a last resort: stepping into a fight should only
+        happen when there is genuinely nothing else to do.
+        """
         candidates: list[tuple[int, int]] = []
+        escape: list[tuple[int, int]] = []      # non-monster, but a reversal
+        fights: list[tuple[tuple[int, int], dict]] = []
         reverse = (-self._last_direction[0], -self._last_direction[1]) if self._last_direction else None
 
         for dx, dy in DIRS:
-            # Only avoid exact immediate reversal (not all history)
-            if reverse and (dx, dy) == reverse:
-                continue
             tile = self.world.get_tile(px + dx, py + dy)
-            if tile and tile.get("type") != "wall":
+            if not tile or tile.get("type") == "wall":
+                continue
+            rev = bool(reverse and (dx, dy) == reverse)
+            if tile.get("monster"):
+                fights.append(((dx, dy), tile["monster"]))
+            elif rev:
+                # Only avoid exact immediate reversal (not all history)
+                escape.append((dx, dy))
+            else:
                 candidates.append((dx, dy))
 
-        if not candidates:
-            # Desperate: allow anything including reversal
-            for dx, dy in DIRS:
-                tile = self.world.get_tile(px + dx, py + dy)
-                if tile and tile.get("type") != "wall":
-                    return (dx, dy)
+        # Dead end guarded by a monster: back out instead of trading blows.
+        # The old code returned *any* walkable tile here, so a bot cornered by
+        # an unbeatable monster attacked it every turn until it died.
+        pool = candidates or escape
+        if pool:
+            return random.choice(pool)
 
-        return random.choice(candidates) if candidates else None
+        # Genuinely boxed in by monsters: fight only a winning exchange,
+        # otherwise hold position and wait for the player to take over.
+        for move, monster in fights:
+            if self._fight_is_safe(monster):
+                self._engaged = (px + move[0], py + move[1])
+                return move
+        return None

@@ -48,6 +48,18 @@ class GameUI:
         # Modal state: "shop", "skill", or None
         self._modal: Optional[str] = None
 
+        # Reused canvas item pool (see _draw_map): created once per size.
+        self._cell_pool: Optional[list] = None
+        self._cell_pool_size: Optional[tuple[int, int]] = None
+        self._cell_state: list = []      # last painted appearance per slot
+        self._cell_bg_tag: list = []     # per-slot tag for the background rect
+        self._cell_fg_tag: list = []     # per-slot tag for the glyph
+        self._inv_sig: Optional[tuple] = None   # skip unchanged inventory
+        self._log_count: int = -1               # skip unchanged log
+        self._cam: tuple = (None, None)         # dead-zoned camera centre
+        self._cam_floor: Optional[int] = None   # forces a recentre on floor change
+        self._cell_font = ("Consolas", max(8, int(self.CELL_SIZE * 0.65)), "bold")
+
         self._setup_ui()
         self._bind_events()
         self._draw()
@@ -317,6 +329,11 @@ class GameUI:
             self._toggle_auto_play()
             return
 
+        # P: print / export the current map (ASCII + xlsx + PNG)
+        if event.keysym in ("p", "P"):
+            self._print_map()
+            return
+
         # Speed control during auto-play
         if event.keysym == "plus" or event.keysym == "equal":
             self._change_speed()
@@ -343,9 +360,15 @@ class GameUI:
             return
         gx = event.x // self.cell_size
         gy = event.y // self.cell_size
+        x1, y1, x2, y2 = self._view_bounds()
+        # gx/gy are *screen* cells; the player position is a *world* cell.
+        # Comparing them directly made every click resolve to one fixed
+        # direction; translate to world coordinates first.
+        ax, ay = x1 + gx, y1 + gy
         px, py = self.world.get_player_position()
-        dx = max(-1, min(1, gx - px)) if abs(gx - px) > abs(gy - py) else 0
-        dy = max(-1, min(1, gy - py)) if abs(gy - py) >= abs(gx - px) else 0
+        ddx, ddy = ax - px, ay - py
+        dx = max(-1, min(1, ddx)) if abs(ddx) > abs(ddy) else 0
+        dy = max(-1, min(1, ddy)) if abs(ddy) >= abs(ddx) else 0
         # Only allow single-step moves via click (or diagonal if exactly diagonal)
         if dx == 0 and dy == 0:
             return
@@ -356,7 +379,7 @@ class GameUI:
     def _on_hover(self, event):
         gx = event.x // self.cell_size
         gy = event.y // self.cell_size
-        x1, y1, x2, y2 = self.world.get_visible_area()
+        x1, y1, x2, y2 = self._view_bounds()
         ax, ay = x1 + gx, y1 + gy
         tile = self.world.get_tile(ax, ay)
         if tile:
@@ -653,6 +676,29 @@ class GameUI:
         else:
             messagebox.showerror("存档失败", "无法写入存档文件。")
 
+    def _print_map(self):
+        """P: print the map to console and export xlsx + PNG."""
+        try:
+            from game.map_print import export_map
+        except Exception as exc:  # pragma: no cover - import guard
+            messagebox.showerror("地图导出失败", f"无法加载 map_print：{exc}")
+            return
+
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        try:
+            res = export_map(self.world, outdir=os.path.join(root, "output"),
+                             quiet=True)
+        except Exception as exc:
+            messagebox.showerror("地图导出失败", str(exc))
+            return
+
+        # No console dump here: the GUI already reports the export in its log
+        # panel (and ``export_map`` prints only when run from the CLI).
+        self.world.add_log(
+            f"地图已导出 {res['cols']}x{res['rows']}（{res['engine']}）"
+            f"-> output/{os.path.basename(res['png'])}", "system")
+        self._draw()
+
     def _manual_load(self):
         """Ctrl+L: prompt load game."""
         if self.world.auto_play:
@@ -700,81 +746,192 @@ class GameUI:
         if self.world.game_over:
             self._show_game_over()
 
+    def _view_bounds(self):
+        """Camera box, recentred only when the player leaves the dead zone.
+
+        The viewport used to be pinned to the player, so *every* step scrolled
+        it and dirtied all 861 cells (~90 ms/turn).  With a dead zone most
+        steps only repaint the two cells the player swapped between; the
+        occasional recentre costs one full frame but happens once every
+        ``CAMERA_DEADZONE`` steps of straight-line travel.
+        """
+        px, py = self.world.get_player_position()
+        hw = self.world.config.get("SCREEN_WIDTH", 41) // 2
+        hh = self.world.config.get("SCREEN_HEIGHT", 21) // 2
+        dz = int(self.world.config.get("CAMERA_DEADZONE", 4))
+        cx, cy = self._cam
+        floor = self.world.current_floor
+        if (cx is None or self._cam_floor != floor
+                or abs(px - cx) > dz or abs(py - cy) > dz):
+            cx, cy = px, py
+            self._cam = (cx, cy)
+            self._cam_floor = floor
+        return (cx - hw, cy - hh, cx + hw, cy + hh)
+
     def _draw_map(self):
-        """Render the visible map area on the Canvas."""
-        self.canvas.delete("all")
-        self.world.ensure_visible_tiles_generated()
+        """Render the visible map area on the Canvas.
 
-        x1, y1, x2, y2 = self.world.get_visible_area()
+        Perf: the canvas is a fixed-size grid, so items are created **once**
+        and then mutated via ``itemconfigure``.  Rebuilding them every frame
+        (``delete("all")`` + ~4300 ``create_*`` calls) cost ~135 ms per redraw
+        (~7 fps).  Reusing them keeps a redraw in the low single-digit ms.
+        """
+        x1, y1, x2, y2 = self._view_bounds()
+        self.world.ensure_visible_tiles_generated((x1, y1, x2, y2))
+
         cs = self.cell_size
+        cols = x2 - x1 + 1
+        rows = y2 - y1 + 1
+        px, py = self.world.get_player_position()
 
-        for y in range(y1, y2 + 1):
-            for x in range(x1, x2 + 1):
-                sx = (x - x1) * cs
-                sy = (y - y1) * cs
+        # (Re)build the item pool only when the visible size changes.
+        if self._cell_pool is None or self._cell_pool_size != (cols, rows):
+            self.canvas.delete("all")
+            self._cell_pool = []
+            self._cell_state = []
+            self._cell_bg_tag = []
+            self._cell_fg_tag = []
+            for j in range(rows):
+                row_items, row_state, bg_tags, fg_tags = [], [], [], []
+                for i in range(cols):
+                    sx, sy = i * cs, j * cs
+                    bg_tag = f"c{j}_{i}b"
+                    fg_tag = f"c{j}_{i}f"
+                    # Outline-less on purpose: 861 outlined rects cost ~20 ms
+                    # per full repaint.  The grid is a static overlay instead.
+                    rect = self.canvas.create_rectangle(
+                        sx, sy, sx + cs, sy + cs,
+                        fill=self.COLORS["floor"], outline="", width=0,
+                        tags=(bg_tag,))
+                    text = self.canvas.create_text(
+                        sx + cs // 2, sy + cs // 2, text="",
+                        fill=self.COLORS["text"],
+                        font=self._cell_font, tags=(fg_tag,),
+                        state=tk.HIDDEN)
+                    row_items.append((rect, text))
+                    row_state.append(None)
+                    bg_tags.append(bg_tag)
+                    fg_tags.append(fg_tag)
+                self._cell_pool.append(row_items)
+                self._cell_state.append(row_state)
+                self._cell_bg_tag.append(bg_tags)
+                self._cell_fg_tag.append(fg_tags)
+            # Static grid: cols+1 / rows+1 lines instead of a stroke per cell.
+            for i in range(cols + 1):
+                self.canvas.create_line(
+                    i * cs, 0, i * cs, rows * cs,
+                    fill="#2b2b2b", tags=("grid",))
+            for j in range(rows + 1):
+                self.canvas.create_line(
+                    0, j * cs, cols * cs, j * cs,
+                    fill="#2b2b2b", tags=("grid",))
+            self._cell_pool_size = (cols, rows)
+
+        pending = []
+        for j, y in enumerate(range(y1, y2 + 1)):
+            for i, x in enumerate(range(x1, x2 + 1)):
                 tile = self.world.get_tile(x, y)
-                px, py = self.world.get_player_position()
 
                 if x == px and y == py:
-                    # Draw player
-                    self._draw_cell(sx, sy, cs, "@", self.COLORS["player"])
+                    pending.append(("#202020", "@", self.COLORS["player"], i, j))
                     continue
 
                 if tile is None:
-                    # Unexplored (shouldn't normally happen)
-                    self.canvas.create_rectangle(
-                        sx, sy, sx + cs, sy + cs,
-                        fill="#111111", outline="#222222"
-                    )
+                    pending.append(("#111111", " ", self.COLORS["text"], i, j))
                     continue
 
                 ttype = tile.get("type", "floor")
 
                 if ttype == "wall":
-                    color = self.COLORS["wall"]
-                    char = "#"
+                    char, color = "#", self.COLORS["wall"]
                 elif tile.get("monster"):
                     m = tile["monster"]
-                    if m.get("isBoss"):
-                        color = self.COLORS["boss"]
-                    else:
-                        color = self.COLORS["monster"]
+                    color = (self.COLORS["boss"] if m.get("isBoss")
+                             else self.COLORS["monster"])
                     char = m["char"]
                 elif tile.get("merchant"):
-                    color = self.COLORS["merchant"]
-                    char = "M"
+                    char, color = "M", self.COLORS["merchant"]
                 elif tile.get("item"):
-                    color = self.COLORS["item"]
-                    char = tile["item"]["char"]
+                    char, color = tile["item"]["char"], self.COLORS["item"]
                 elif tile.get("door"):
-                    color = self.COLORS["door"]
-                    char = "="
+                    char, color = "=", self.COLORS["door"]
                 elif tile.get("stairs"):
-                    color = self.COLORS["stairs"]
-                    char = ">"
+                    char, color = ">", self.COLORS["stairs"]
                 else:
-                    color = self.COLORS["floor"]
-                    char = "."
+                    char, color = ".", self.COLORS["floor"]
 
-                self._draw_cell(sx, sy, cs, char, color)
+                pending.append((self._bg_for(char), char, self._fg_for(char, color), i, j))
 
-    def _draw_cell(self, x: int, y: int, size: int, char: str, color: str):
-        """Draw a single cell with background rect + centered character."""
-        # Background
-        bg_color = {
-            "#": self.COLORS["wall"],
-            ".": self.COLORS["floor"],
-        }.get(char, "#202020")
-        self.canvas.create_rectangle(
-            x, y, x + size, y + size,
-            fill=bg_color, outline="#333333", width=1,
-        )
-        # Character
-        self.canvas.create_text(
-            x + size // 2, y + size // 2,
-            text=char, fill=color,
-            font=("Consolas", int(size * 0.65), "bold"),
-        )
+        self._flush(pending)
+
+    def _flush(self, pending: list):
+        """Push a frame's cell changes to Tcl in a handful of calls.
+
+        Cells are bucketed by appearance; each bucket gets a transient shared
+        tag which is then configured in one ``itemconfigure`` call.  A full
+        viewport scroll (every cell dirty) costs ~15 calls instead of 8600
+        individual ones — 130 ms down to a few ms.
+
+        Note: Tk only accepts a *single* tag or id here, and a space-joined
+        tag string is NOT split (it silently matches nothing), hence the
+        temporary group tag.
+        """
+        if not pending:
+            return
+
+        groups: dict[tuple, list[str]] = {}
+        bgs: dict[str, list[str]] = {}
+        state = self._cell_state
+        for bg, char, color, i, j in pending:
+            key = (bg, char, color)
+            if state[j][i] == key:
+                continue
+            state[j][i] = key
+            groups.setdefault(key, []).append(self._cell_fg_tag[j][i])
+            bgs.setdefault(bg, []).append(self._cell_bg_tag[j][i])
+
+        canvas = self.canvas
+        tk_call = canvas.tk.call
+        w = canvas._w
+
+        def bulk(group: str, tags: list[str], *opts):
+            canvas.tk.call(w, "addtag", group, "withtag", " || ".join(tags))
+            try:
+                tk_call(w, "itemconfigure", group, *opts)
+            finally:
+                canvas.dtag("all", group)
+
+        for n, ((bg, char, color), tags) in enumerate(groups.items()):
+            # Blank cells (unexplored void) hide their glyph so Tk skips it.
+            st = tk.HIDDEN if char == " " else tk.NORMAL
+            bulk(f"_fg{n}", tags, "-text", char, "-fill", color, "-state", st)
+        for n, (bg, tags) in enumerate(bgs.items()):
+            bulk(f"_bg{n}", tags, "-fill", bg)
+
+    def _bg_for(self, char: str) -> str:
+        """Background tint behind a glyph.
+
+        Walls and floors are painted with their own body colour (they *are*
+        the background); entities sit on a dark tile so their glyph pops.
+        """
+        if char == "#":
+            return self.COLORS["wall"]
+        if char == ".":
+            return self.COLORS["floor"]
+        return "#202020"
+
+    def _fg_for(self, char: str, color: str) -> str:
+        """Glyph colour, kept legible against the tile behind it.
+
+        Floor and wall were previously drawn in their own body colour, which
+        made the glyph invisible (dark grey on dark grey); bump them to
+        dedicated, readable tones.
+        """
+        if char == "#":
+            return "#1a1a1a"
+        if char == ".":
+            return "#6f6f6f"
+        return color
 
     # ================================================================
     #  STATUS PANEL UPDATE
@@ -795,17 +952,26 @@ class GameUI:
         labels["floor"].config(text=str(w.current_floor))
         labels["keys"].config(text=str(pd["keys"]))
         mult = w.monster_multiplier()
-        labels["mult"].config(text=f"{mult}x")
+        labels["mult"].config(text=f"{mult:.2f}x")
         next_boss = math.ceil(w.current_floor / cfg.BOSS_FLOOR_INTERVAL) * cfg.BOSS_FLOOR_INTERVAL
         labels["next_boss"].config(text=f"Floor {next_boss}")
 
     def _update_inventory(self):
-        """Rebuild inventory panel with Use buttons."""
+        """Rebuild inventory panel with Use buttons (only when it changed).
+
+        Rebuilding the widget tree every frame cost ~7 ms of Tk layout work
+        for a panel that usually does not change between moves.
+        """
+        inv: list[dict] = self.world.player_data.get("inventory", [])
+        sig = tuple((it.get("name"), it.get("desc"), it.get("type")) for it in inv)
+        if sig == self._inv_sig:
+            return
+        self._inv_sig = sig
+
         # Clear old widgets
         for w in self._inv_inner.winfo_children():
             w.destroy()
 
-        inv: list[dict] = self.world.player_data.get("inventory", [])
         if not inv:
             self.inv_label = tk.Label(self._inv_inner, text="Empty", justify=tk.LEFT,
                                       bg="#111111", fg="#888888", font=("Segoe UI", 8))
@@ -872,9 +1038,15 @@ class GameUI:
         self.buffs_label.config(text="\n".join(lines))
 
     def _update_log(self):
+        """Repaint the log only when new lines arrived."""
+        entries = self.world.log_entries
+        if len(entries) == self._log_count:
+            return
+        self._log_count = len(entries)
+
         self.log_text.config(state=tk.NORMAL)
         self.log_text.delete("1.0", tk.END)
-        for msg, mtype in self.world.log_entries:
+        for msg, mtype in entries:
             self.log_text.insert(tk.END, f"{msg}\n", mtype)
         self.log_text.see(tk.END)
         self.log_text.config(state=tk.DISABLED)

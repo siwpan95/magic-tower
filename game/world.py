@@ -6,6 +6,7 @@ import json
 import math
 import os
 import random
+import sys
 from typing import Any, Callable, Optional
 
 from ecs.components import (
@@ -19,6 +20,7 @@ from ecs.components import (
 )
 from ecs.entity import EntityManager
 from game import config as cfg
+from game.worldgen import WorldGenerator, chunk_index
 
 
 class GameWorld:
@@ -41,6 +43,9 @@ class GameWorld:
         self.running: bool = True
         self.boss_defeated: bool = False
         self.boss_floor_shown: bool = False
+        # Boss floors are a single arena, not one per chunk (see
+        # generate_area_around).  Tracks which floor the arena belongs to.
+        self._boss_arena_floor: Optional[int] = None
         self.open_shop: bool = False
 
         # --- Auto-play state ---
@@ -81,6 +86,10 @@ class GameWorld:
             if not k.startswith("_") and k.isupper()
         }
         self.config.update(self._game_data)  # Excel content data overlays
+
+        # --- Procedural world generation (worldbuilder adapter) ---
+        self.generator = WorldGenerator(self)
+        self._cleaned_for: Optional[tuple] = None   # last pos we pruned around
 
         # --- Log ---
         self.log_entries: list[tuple[str, str]] = []  # (message, type)
@@ -165,8 +174,18 @@ class GameWorld:
     def set_tile(self, x: int, y: int, tile: dict):
         self.map_data[f"{x},{y}"] = tile
 
-    def monster_multiplier(self) -> int:
-        return 2 ** (self.current_floor - 1)
+    def monster_multiplier(self) -> float:
+        """Linear per-floor scaling on top of the CR-based bestiary tiers.
+
+        Was ``2 ** (floor - 1)`` (floor 20 => 524288x), which combined with the
+        bestiary's own CR curve produced a double-exponential difficulty wall:
+        average monster HP hit ~9e7 by floor 20 and every run ended in a
+        one-shot.  Now the multiplier is gentle (1 + 0.10*(floor-1)) because the
+        *species mix* already escalates with depth — floor 1 fields Kobolds,
+        floor 20 fields Pit Fiends.
+        """
+        per = float(self.config.get("FLOOR_MONSTER_MULT", cfg.FLOOR_MONSTER_MULT))
+        return 1.0 + per * (self.current_floor - 1)
 
     # ---- Map generation ----
 
@@ -174,56 +193,49 @@ class GameWorld:
         """Generate the initial area around player."""
         self.player_data["x"] = 0
         self.player_data["y"] = 0
+        self.generator.clear_cache()
         self.generate_area_around(0, 0)
         self.ensure_player_on_floor()
 
     def generate_area_around(self, cx: int, cy: int):
-        """Generate tiles in radius around center."""
+        """Generate tiles in radius around center.
+
+        Boss floors keep their hand-built arena; every other floor is an
+        infinite chunked dungeon produced by the worldbuilder adapter.
+        """
         is_boss_floor = self.current_floor % cfg.BOSS_FLOOR_INTERVAL == 0
 
         if is_boss_floor:
-            self._generate_boss_room(cx, cy)
-        else:
-            radius = 5
-            for dx in range(-radius, radius + 1):
-                for dy in range(-radius, radius + 1):
-                    x, y = cx + dx, cy + dy
-                    key = f"{x},{y}"
-                    if key not in self.map_data:
-                        self._generate_tile(x, y)
+            # One arena per boss floor.  Building a room for *every* chunk
+            # that materialised meant: a fresh boss each time, boss_defeated
+            # reset to False, and the player teleported to the new room's
+            # entry — so the boss could never be cleared and the floor was a
+            # dead end.
+            if self._boss_arena_floor != self.current_floor:
+                self._boss_arena_floor = self.current_floor
+                self._generate_boss_room(cx, cy)
+            return
 
-    def _generate_tile(self, x: int, y: int):
-        """Generate a single tile using noise."""
-        noise = (math.sin(x * 0.5) * math.cos(y * 0.5) + 1) / 2
+        # New floor (or fresh start): drop cached layouts so this floor's
+        # deterministic seed space restarts, then materialise around (cx, cy).
+        self.generator.clear_cache()
+        radius = 5
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                self._ensure_tile(cx + dx, cy + dy)
 
-        if noise < 0.3:
-            tile = {"type": "wall", "char": cfg.TILES["WALL"], "x": x, "y": y}
-        else:
-            tile = {
-                "type": "floor",
-                "char": cfg.TILES["FLOOR"],
-                "x": x, "y": y,
-            }
-            # Sequential probability checks (like original JS)
-            r = random.random()
-            if r < cfg.GEN_CHANCE_ITEM:
-                tile["item"] = self._get_random_item(self)
-            elif r < cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER:
-                tile["monster"] = self._get_random_monster()
-            elif r < cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER + cfg.GEN_CHANCE_DOOR:
-                tile["door"] = True
-                tile["char"] = cfg.TILES["DOOR"]
-            elif r < (cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER
-                      + cfg.GEN_CHANCE_DOOR + cfg.GEN_CHANCE_STAIRS):
-                tile["stairs"] = True
-                tile["char"] = cfg.TILES["STAIRS"]
-            elif r < (cfg.GEN_CHANCE_ITEM + cfg.GEN_CHANCE_MONSTER
-                      + cfg.GEN_CHANCE_DOOR + cfg.GEN_CHANCE_STAIRS
-                      + cfg.GEN_CHANCE_MERCHANT):
-                tile["merchant"] = True
-                tile["char"] = cfg.TILES["MERCHANT"]
+    def _ensure_tile(self, x: int, y: int):
+        """Materialise the chunk containing (x, y) when the tile is missing.
 
-        self.map_data[f"{x},{y}"] = tile
+        Existing tiles are never overwritten (no-overwrite semantics), so
+        player progress inside a chunk survives lazy regeneration.
+        """
+        key = f"{x},{y}"
+        if key in self.map_data:
+            return
+        size = self.generator.chunk_size
+        self.generator.materialize_chunk(
+            chunk_index(x, size), chunk_index(y, size))
 
     def _generate_boss_room(self, cx: int, cy: int):
         size = cfg.BOSS_ROOM_SIZE
@@ -245,13 +257,34 @@ class GameWorld:
 
                     if dx == 0 and dy == 0:
                         boss = {**self.config.get("BOSS_TEMPLATE", {})}
-                        boss["hp"] = int(boss["hp"] * mult)
-                        boss["attack"] = int(boss["attack"] * mult)
-                        boss["defense"] = int(boss["defense"] * mult)
-                        boss["exp"] = int(boss["exp"] * mult)
-                        boss["gold"] = int(boss["gold"] * mult)
+                        # Scale off the floor's strongest normal monster.  The
+                        # old "template x floor multiplier" made the floor-18
+                        # boss 5400 HP / 162 DEF against a ~106 ATK player:
+                        # damage floored to 1/hit while it dealt 209, so the
+                        # boss floor (a hard gate) could never be cleared.
+                        ref = self.generator.strongest_unlocked()
+                        hp_m = self.config.get("BOSS_HP_MULT", cfg.BOSS_HP_MULT)
+                        at_m = self.config.get("BOSS_ATK_MULT", cfg.BOSS_ATK_MULT)
+                        df_m = self.config.get("BOSS_DEF_MULT", cfg.BOSS_DEF_MULT)
+                        if ref:
+                            boss["hp"] = int(ref["hp"] * hp_m)
+                            boss["attack"] = int(ref["attack"] * at_m)
+                            boss["defense"] = int(ref["defense"] * df_m)
+                            boss["exp"] = int(ref.get("exp", 100) * hp_m)
+                            boss["gold"] = int(ref.get("gold", 50) * hp_m)
+                        else:
+                            # No pool (data file without monsters): old behaviour
+                            boss["hp"] = int(boss["hp"] * mult)
+                            boss["attack"] = int(boss["attack"] * mult)
+                            boss["defense"] = int(boss["defense"] * mult)
                         boss["current_hp"] = boss["hp"]
+                        # Both spellings: the world/UI side reads "isBoss",
+                        # the combat system historically read "is_boss".
                         boss["isBoss"] = True
+                        boss["is_boss"] = True
+                        # Generated epithet, e.g. "Demon Lord「Vorwyn」"
+                        boss["name"] = self.generator.elite_name(
+                            boss.get("name", "Demon Lord"))
                         tile["monster"] = boss
                         self.boss_defeated = False
 
@@ -293,31 +326,6 @@ class GameWorld:
                         tile["char"] = cfg.TILES["STAIRS"]
                     return
 
-    def _get_random_monster(self) -> dict:
-        """Get a random monster with floor multiplier applied."""
-        from game.utils import calculate_monster_multiplier
-        pool = list(self.config.get("MONSTER_TYPES", []))
-        if self.current_floor == 1:
-            pool = pool[:2]
-        elif self.current_floor <= 5:
-            pool = pool[:3]
-
-        monster = {**random.choice(pool)}
-        mult = self.monster_multiplier()
-        monster["hp"] = int(monster["hp"] * mult)
-        monster["attack"] = int(monster["attack"] * mult)
-        monster["defense"] = int(monster["defense"] * mult)
-        monster["exp"] = int(monster["exp"] * mult)
-        monster["gold"] = int(monster["gold"] * mult)
-        monster["current_hp"] = monster["hp"]
-        return monster
-
-    @staticmethod
-    def _get_random_item(world=None) -> dict:
-        if world is None:
-            return {"char": "?", "name": "Unknown", "type": "misc", "value": 0}
-        return {**random.choice(world.config.get("ITEM_TYPES", []))}
-
     def ensure_player_on_floor(self):
         pk = f"{self.player_data['x']},{self.player_data['y']}"
         if pk not in self.map_data or self.map_data[pk].get("type") == "wall":
@@ -345,33 +353,40 @@ class GameWorld:
                 result.append((eid, (pos, rend)))
         return result
 
-    def ensure_visible_tiles_generated(self):
-        """Generate any tiles within view that don't exist yet."""
-        x1, y1, x2, y2 = self.get_visible_area()
+    def ensure_visible_tiles_generated(self, area=None):
+        """Generate any tiles within view that don't exist yet.
+
+        ``area`` lets the caller (the UI camera) ask for a box that is offset
+        from the player, so a dead-zoned camera never shows ungenerated void.
+        """
+        x1, y1, x2, y2 = area if area is not None else self.get_visible_area()
         for y in range(y1, y2 + 1):
             for x in range(x1, x2 + 1):
-                key = f"{x},{y}"
-                if key not in self.map_data:
-                    self._generate_tile(x, y)
-        # Cleanup far tiles
-        self._cleanup_distant_tiles()
+                self._ensure_tile(x, y)
+        # Cleanup is O(map_data) with a key parse per tile; only the player
+        # moving can push tiles out of range, so skip it on pure redraws.
+        pos = (self.player_data["x"], self.player_data["y"])
+        if pos != self._cleaned_for:
+            self._cleaned_for = pos
+            self._cleanup_distant_tiles()
 
     def _cleanup_distant_tiles(self):
+        px, py = self.player_data["x"], self.player_data["y"]
+        radius = cfg.CLEANUP_RADIUS
         keys_to_remove = [
             k for k in self.map_data
-            if self._tile_distance(k) > cfg.CLEANUP_RADIUS
+            if self._tile_distance(k, px, py) > radius
         ]
         for k in keys_to_remove:
             del self.map_data[k]
 
-    def _tile_distance(self, key: str) -> float:
+    def _tile_distance(self, key: str, px: int, py: int) -> float:
         try:
-            parts = key.split(",")
-            x, y = int(parts[0]), int(parts[1])
+            x, y = key.split(",", 1)
+            dx = abs(int(x) - px)
+            dy = abs(int(y) - py)
         except (ValueError, IndexError):
             return float("inf")
-        dx = abs(x - self.player_data["x"])
-        dy = abs(y - self.player_data["y"])
         return max(dx, dy)
 
     # ---- Progress tracking ----
@@ -594,6 +609,12 @@ class GameWorld:
 
     @staticmethod
     def _save_path() -> str:
+        if getattr(sys, "frozen", False):
+            # PyInstaller onefile: __file__ resolves inside the one-shot _MEIPASS
+            # temp dir, which is wiped on exit. Persist next to the executable.
+            return os.path.join(
+                os.path.dirname(os.path.abspath(sys.executable)), "town_save.json"
+            )
         # Save in the project root directory (next to main.py)
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(project_root, "town_save.json")
