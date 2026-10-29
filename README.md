@@ -7,7 +7,7 @@
 > 本仓在 siwpan 投资组合（D:/projects/repos，共 133 仓）中定级为 **② 精选旗舰**，领域 **游戏作品**。
 > **角色**：游戏旗舰。
 > **维护策略**：② 旗舰 / 枢纽仓库打磨保留，作为能力展示或收敛点；② 保留类仓库低优先维持、不主动扩张。
-> 投资组合统一分级索引：`D:/projects/repos/PORTFOLIO_TIERING.md`。
+> 投资组合统一分级索引（多机可查）：[组合分级决策索引 · allin 事实源](https://gitee.com/siwpan/allin/blob/master/docs/事实源/组合分级决策索引.md)。
 
 一个用 **Python + Tkinter** 写的魔塔类爬塔 Roguelike：地图**程序化无限生成**，战斗/捡取/下楼等逻辑全部走 **ECS 架构**，
 界面为 Tkinter 手绘网格（支持鼠标点击与悬停查看），内置 **全自动挂机 AI**，可一键打包成 Windows 单文件 exe。
